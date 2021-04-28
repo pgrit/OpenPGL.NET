@@ -33,6 +33,8 @@ namespace OpenPGL.NET {
     }
 
     public class PathSegmentStorage : IDisposable {
+        IntPtr storage;
+
         public PathSegmentStorage() {
             storage = OpenPGL.pglNewPathSegmentStorage();
             Debug.Assert(storage != IntPtr.Zero);
@@ -69,7 +71,5 @@ namespace OpenPGL.NET {
         public void AddSample(SampleData sample) => OpenPGL.pglPathSegmentStorageAddSample(storage, sample);
 
         public PathSegment NextSegment() => new(OpenPGL.pglPathSegmentNextSegment(storage));
-
-        IntPtr storage;
     }
 }

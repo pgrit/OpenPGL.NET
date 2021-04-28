@@ -63,5 +63,46 @@ namespace OpenPGL.NET.Tests {
 
             // TOOD check the actual values once conventions are clear
         }
+
+        [Fact]
+        public void SampleStorage_ShouldContainTheSample() {
+            OpenPGL.NET.SampleStorage storage = new();
+            storage.Reserve(10, 10);
+            storage.AddSample(new() {
+                Direction = new(1, 2, 3),
+                Distance = 42,
+                Pdf = 123,
+                Position = new(4, 5, 6),
+                Weight = 133.7f,
+                Flags = 0
+            });
+
+            storage.AddSamples(new SampleData[] {
+                new() {
+                    Direction = new(1, 2, 3),
+                    Distance = 42,
+                    Pdf = 123,
+                    Position = new(4,5,6),
+                    Weight = 10,
+                    Flags = SampleData.SampleFlags.EInsideVolume
+                },
+                new() {
+                    Direction = new(1, 2, 3),
+                    Distance = 42,
+                    Pdf = 123,
+                    Position = new(4,5,6),
+                    Weight = 20,
+                    Flags = 0
+                }
+            });
+
+            Assert.Equal(2u, storage.SizeSurface);
+            Assert.Equal(1u, storage.SizeVolume);
+
+            storage.Clear();
+
+            Assert.Equal(0u, storage.SizeSurface);
+            Assert.Equal(0u, storage.SizeVolume);
+        }
     }
 }

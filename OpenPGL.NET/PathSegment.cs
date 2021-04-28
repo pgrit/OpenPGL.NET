@@ -73,7 +73,7 @@ namespace OpenPGL.NET {
         public bool IsDelta { set { OpenPGL.pglPathSegmentSetIsDelta(data, value); } }
         public float Roughness { set { OpenPGL.pglPathSegmentSetRoughness(data, value); } }
         public Vector3 TransmittanceWeight { set { OpenPGL.pglPathSegmentSetTransmittanceWeight(data, value); } }
-        public Region Region { set { OpenPGL.pglPathSegmentSetRegion(data, value.Data); } }
+        public Region Region { set { OpenPGL.pglPathSegmentSetRegion(data, value.Handle); } }
 
         IntPtr data;
     }
