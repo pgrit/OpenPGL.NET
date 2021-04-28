@@ -20,10 +20,16 @@ namespace OpenPGL.NET {
         public static extern IntPtr pglPathSegmentStorageGetSamples(IntPtr pathSegmentStorage, out uint nSamples);
 
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void pglPathSegmentStorageAddSample(IntPtr pathSegmentStorage, [In] SampleData sample);
+        public static extern void pglPathSegmentStorageAddSample(IntPtr pathSegmentStorage, SampleData sample);
 
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr pglPathSegmentNextSegment(IntPtr pathSegmentStorage);
+
+        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr pglPathSegmentStoragePrepareSamples(IntPtr pathSegmentStorage,
+            [MarshalAs(UnmanagedType.I1), In] in bool spaltSamples, [In, Out] ref Sampler sampler,
+            [MarshalAs(UnmanagedType.I1)] bool useNEEMiWeights,
+            [MarshalAs(UnmanagedType.I1)] bool guideDirectLight);
     }
 
     public class PathSegmentStorage : IDisposable {
@@ -45,9 +51,11 @@ namespace OpenPGL.NET {
 
         public void Clear() => OpenPGL.pglPathSegmentStorageClear(storage);
 
-        public uint PrepareSamples(bool splatSamples, Sampler sampler, bool useNEEMiWeights,
+        public uint PrepareSamples(bool splatSamples, SamplerWrapper sampler, bool useNEEMiWeights,
                                    bool guideDirectLight) {
-            return 0;
+            var samplerData = sampler.ToUnmanaged();
+            return (uint) OpenPGL.pglPathSegmentStoragePrepareSamples(storage, in splatSamples,
+                ref samplerData, useNEEMiWeights, guideDirectLight);
         }
 
         public unsafe Span<SampleData> Samples {
