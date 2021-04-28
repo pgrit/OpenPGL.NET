@@ -1,3 +1,6 @@
 # generated build files
 obj
 bin
+
+# rendering results
+/*/Results/*

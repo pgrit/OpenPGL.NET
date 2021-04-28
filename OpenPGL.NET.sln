@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenPGL.NET", "OpenPGL.NET\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GuidedPathTracer", "GuidedPathTracer\GuidedPathTracer.csproj", "{E7F85951-8029-448E-8979-5BE4F6F2CF82}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenPGL.NET.Tests", "OpenPGL.NET.Tests\OpenPGL.NET.Tests.csproj", "{9893609C-4144-4640-955B-D9A8F8F6CBEC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,5 +46,17 @@ Global
 		{E7F85951-8029-448E-8979-5BE4F6F2CF82}.Release|x64.Build.0 = Release|Any CPU
 		{E7F85951-8029-448E-8979-5BE4F6F2CF82}.Release|x86.ActiveCfg = Release|Any CPU
 		{E7F85951-8029-448E-8979-5BE4F6F2CF82}.Release|x86.Build.0 = Release|Any CPU
+		{9893609C-4144-4640-955B-D9A8F8F6CBEC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9893609C-4144-4640-955B-D9A8F8F6CBEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9893609C-4144-4640-955B-D9A8F8F6CBEC}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9893609C-4144-4640-955B-D9A8F8F6CBEC}.Debug|x64.Build.0 = Debug|Any CPU
+		{9893609C-4144-4640-955B-D9A8F8F6CBEC}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9893609C-4144-4640-955B-D9A8F8F6CBEC}.Debug|x86.Build.0 = Debug|Any CPU
+		{9893609C-4144-4640-955B-D9A8F8F6CBEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9893609C-4144-4640-955B-D9A8F8F6CBEC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9893609C-4144-4640-955B-D9A8F8F6CBEC}.Release|x64.ActiveCfg = Release|Any CPU
+		{9893609C-4144-4640-955B-D9A8F8F6CBEC}.Release|x64.Build.0 = Release|Any CPU
+		{9893609C-4144-4640-955B-D9A8F8F6CBEC}.Release|x86.ActiveCfg = Release|Any CPU
+		{9893609C-4144-4640-955B-D9A8F8F6CBEC}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

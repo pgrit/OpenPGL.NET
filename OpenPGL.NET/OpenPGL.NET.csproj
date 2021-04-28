@@ -2,6 +2,16 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
+  <!-- Linux -->
+  <ItemGroup>
+    <Content CopyToOutputDirectory="PreserveNewest"
+      Include="../Runtimes/libopenpgl.so.0.1.0"
+      Pack="true"
+      PackagePath="runtimes/linux-x64/native/"
+      Condition="Exists('../Runtimes/libopenpgl.so.0.1.0')"/>
+  </ItemGroup>
 
 </Project>
