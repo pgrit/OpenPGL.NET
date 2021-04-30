@@ -25,8 +25,10 @@ namespace OpenPGL.NET {
 
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
         public static extern void pglSurfaceSamplingDistributionInit(IntPtr handle, IntPtr regionHandle,
-            Vector3 samplePosition, Vector3 normal, [MarshalAs(UnmanagedType.I1)] bool useParallaxComp,
-            [MarshalAs(UnmanagedType.I1)] bool useCosine);
+            Vector3 samplePosition, [MarshalAs(UnmanagedType.I1)] bool useParallaxComp);
+
+        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void pglSurfaceSamplingDistributionApplyCosineProduct(IntPtr handle, Vector3 normal);
     }
 
     public class SurfaceSamplingDistribution : IDisposable {
@@ -53,10 +55,11 @@ namespace OpenPGL.NET {
 
         public void Clear() => OpenPGL.pglSurfaceSamplingDistributionClear(handle);
 
-        public void Init(Region region, Vector3 pos, Vector3 normal, bool useParallaxCompensation = true,
-            bool useCosineProduct = true)
-        => OpenPGL.pglSurfaceSamplingDistributionInit(handle, region.Handle, pos, normal,
-            useParallaxCompensation, useCosineProduct);
+        public void Init(Region region, Vector3 pos, bool useParallaxCompensation = true)
+        => OpenPGL.pglSurfaceSamplingDistributionInit(handle, region.Handle, pos, useParallaxCompensation);
+
+        public void ApplyCosineProduct(Vector3 normal)
+        => OpenPGL.pglSurfaceSamplingDistributionApplyCosineProduct(handle, normal);
 
         ~SurfaceSamplingDistribution() => Dispose();
     }

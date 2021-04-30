@@ -41,14 +41,16 @@ namespace OpenPGL.NET {
         public static extern uint pglFieldGetTotalSPP(IntPtr field);
 
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void pglFieldUpdate(IntPtr field, BoundingBox bounds, IntPtr sampleStorage,
-            uint numPerPixelSamples);
+        public static extern void pglFieldUpdate(IntPtr field, IntPtr sampleStorage, UIntPtr numPerPixelSamples);
 
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr pglFieldGetSurfaceRegion(IntPtr field, Vector3 position, ref Sampler sampler);
 
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr pglFieldGetVolumeRegion(IntPtr field, Vector3 position, ref Sampler sampler);
+
+        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void pglFieldSetSceneBounds(IntPtr field, BoundingBox bounds);
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -90,7 +92,9 @@ namespace OpenPGL.NET {
             return new(OpenPGL.pglFieldGetVolumeRegion(handle, position, ref s));
         }
 
-        public void Update(BoundingBox bounds, SampleStorage storage, uint numPerPixelSamples)
-        => OpenPGL.pglFieldUpdate(handle, bounds, storage.Handle, numPerPixelSamples);
+        public void Update(SampleStorage storage, uint numPerPixelSamples)
+        => OpenPGL.pglFieldUpdate(handle, storage.Handle, new(numPerPixelSamples));
+
+        public BoundingBox SceneBounds { set => OpenPGL.pglFieldSetSceneBounds(handle, value); }
     }
 }

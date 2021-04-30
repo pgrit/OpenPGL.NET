@@ -11,19 +11,22 @@ namespace OpenPGL.NET {
         public static extern void pglReleasePathSegmentStorage(IntPtr pathSegmentStorage);
 
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void pglPathSegmentStorageReserve(IntPtr pathSegmentStorage, IntPtr size);
+        public static extern void pglPathSegmentStorageReserve(IntPtr pathSegmentStorage, UIntPtr size);
 
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
         public static extern void pglPathSegmentStorageClear(IntPtr pathSegmentStorage);
 
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr pglPathSegmentStorageGetSamples(IntPtr pathSegmentStorage, out uint nSamples);
+        public static extern IntPtr pglPathSegmentStorageGetSamples(IntPtr pathSegmentStorage, out UIntPtr nSamples);
 
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
         public static extern void pglPathSegmentStorageAddSample(IntPtr pathSegmentStorage, SampleData sample);
 
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr pglPathSegmentNextSegment(IntPtr pathSegmentStorage);
+
+        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr pglPathSegmentGetSegment(IntPtr pathSegmentStorage, UIntPtr index);
 
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr pglPathSegmentStoragePrepareSamples(IntPtr pathSegmentStorage,
@@ -49,7 +52,7 @@ namespace OpenPGL.NET {
 
         ~PathSegmentStorage() => Dispose();
 
-        public void Reserve(uint size) => OpenPGL.pglPathSegmentStorageReserve(storage, new IntPtr(size));
+        public void Reserve(uint size) => OpenPGL.pglPathSegmentStorageReserve(storage, new(size));
 
         public void Clear() => OpenPGL.pglPathSegmentStorageClear(storage);
 
@@ -62,7 +65,7 @@ namespace OpenPGL.NET {
 
         public unsafe Span<SampleData> Samples {
             get {
-                uint num;
+                UIntPtr num;
                 IntPtr ptr = OpenPGL.pglPathSegmentStorageGetSamples(storage, out num);
                 return new(ptr.ToPointer(), (int)num);
             }
@@ -71,5 +74,9 @@ namespace OpenPGL.NET {
         public void AddSample(SampleData sample) => OpenPGL.pglPathSegmentStorageAddSample(storage, sample);
 
         public PathSegment NextSegment() => new(OpenPGL.pglPathSegmentNextSegment(storage));
+
+        public PathSegment this[uint index] => new(OpenPGL.pglPathSegmentGetSegment(storage, new(index)));
+
+        public PathSegment GetSegment(uint index) => this[index];
     }
 }
