@@ -65,6 +65,59 @@ namespace OpenPGL.NET.Tests {
         }
 
         [Fact]
+        public void PathSegments_ShouldBeCleared() {
+            PathSegmentStorage storage = new();
+            storage.Reserve(10);
+
+            // Surface hit point
+            PathSegment segment = storage.NextSegment();
+            segment.Position = new(0, 0, 3);
+            segment.Normal = Vector3.UnitZ;
+            segment.DirectionIn = Vector3.UnitZ;
+            segment.DirectionOut = Vector3.UnitZ;
+            segment.ScatteredContribution = new(0, 0, 0);
+            segment.ScatteringWeight = new(1, 1, 1);
+
+            // Light vertex
+            segment = storage.NextSegment();
+            segment.Position = new(0, 0, 5);
+            segment.DirectContribution = new(10, 10, 10);
+
+            // Clear and add the same two segments again
+            storage.Clear();
+
+            segment = storage.NextSegment();
+            segment.Position = new(0, 0, 3);
+            segment.Normal = Vector3.UnitZ;
+            segment.DirectionIn = Vector3.UnitZ;
+            segment.DirectionOut = Vector3.UnitZ;
+            segment.ScatteredContribution = new(0, 0, 0);
+            segment.ScatteringWeight = new(1, 1, 1);
+
+            // Light vertex
+            segment = storage.NextSegment();
+            segment.Position = new(0, 0, 5);
+            segment.DirectContribution = new(10, 10, 10);
+
+            System.Random rng = new(1337);
+            SamplerWrapper sampler = new(
+                () => (float)rng.NextDouble(),
+                () => new((float)rng.NextDouble(), (float)rng.NextDouble())
+            );
+            uint num = storage.PrepareSamples(false, sampler, true, true);
+
+            Assert.Equal(1u, num);
+            Assert.Equal(1, storage.Samples.Length);
+
+            var sample = storage.Samples[0];
+            Assert.Equal(2, sample.Distance);
+            Assert.Equal(10, sample.Weight);
+            Assert.Equal(new Vector3(0, 0, 3), sample.Position);
+            Assert.Equal(new Vector3(0, 0, 1), sample.Direction);
+            Assert.Equal(1, sample.Pdf);
+        }
+
+        [Fact]
         public void SampleStorage_ShouldContainTheSample() {
             OpenPGL.NET.SampleStorage storage = new();
             storage.Reserve(10, 10);

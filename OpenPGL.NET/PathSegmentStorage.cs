@@ -52,13 +52,22 @@ namespace OpenPGL.NET {
 
         ~PathSegmentStorage() => Dispose();
 
+        public int Count { get; private set; }
+        public bool IsPrepared = false;
+
         public void Reserve(uint size) => OpenPGL.pglPathSegmentStorageReserve(storage, new(size));
 
-        public void Clear() => OpenPGL.pglPathSegmentStorageClear(storage);
+        public void Clear() {
+            Count = 0;
+            IsPrepared = false;
+            OpenPGL.pglPathSegmentStorageClear(storage);
+        }
 
         public uint PrepareSamples(bool splatSamples, SamplerWrapper sampler, bool useNEEMiWeights,
                                    bool guideDirectLight) {
+            Debug.Assert(!IsPrepared);
             var samplerData = sampler.ToUnmanaged();
+            IsPrepared = true;
             return (uint) OpenPGL.pglPathSegmentStoragePrepareSamples(storage, in splatSamples,
                 ref samplerData, useNEEMiWeights, guideDirectLight);
         }
@@ -73,7 +82,10 @@ namespace OpenPGL.NET {
 
         public void AddSample(SampleData sample) => OpenPGL.pglPathSegmentStorageAddSample(storage, sample);
 
-        public PathSegment NextSegment() => new(OpenPGL.pglPathSegmentNextSegment(storage));
+        public PathSegment NextSegment() {
+            Count += 1;
+            return new(OpenPGL.pglPathSegmentNextSegment(storage));
+        }
 
         public PathSegment this[uint index] => new(OpenPGL.pglPathSegmentGetSegment(storage, new(index)));
 
