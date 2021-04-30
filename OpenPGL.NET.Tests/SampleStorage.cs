@@ -32,24 +32,19 @@ namespace OpenPGL.NET.Tests {
             PathSegmentStorage storage = new();
             storage.Reserve(10);
 
-            // Dummy "camera" ray
-            storage.NextSegment();
-
+            // Surface hit point
             PathSegment segment = storage.NextSegment();
-            segment.Position = new(1, 2, 3);
-            segment.MiWeight = 1;
+            segment.Position = new(0, 0, 3);
             segment.Normal = Vector3.UnitZ;
-            segment.PDFDirectionIn = 1;
             segment.DirectionIn = Vector3.UnitZ;
             segment.DirectionOut = Vector3.UnitZ;
-            segment.Eta = 1.4f;
-            segment.Roughness = 0.5f;
-            segment.RussianRouletteProbability = 1.0f;
-            segment.ScatteredContribution = new(10, 10, 10);
+            segment.ScatteredContribution = new(0, 0, 0);
             segment.ScatteringWeight = new(1, 1, 1);
 
-            // Dummy "light" ray
-            storage.NextSegment();
+            // Light vertex
+            segment = storage.NextSegment();
+            segment.Position = new(0, 0, 5);
+            segment.DirectContribution = new(10, 10, 10);
 
             System.Random rng = new(1337);
             SamplerWrapper sampler = new(
@@ -61,7 +56,12 @@ namespace OpenPGL.NET.Tests {
             Assert.Equal(1u, num);
             Assert.Equal(1, storage.Samples.Length);
 
-            // TOOD check the actual values once conventions are clear
+            var sample = storage.Samples[0];
+            Assert.Equal(2, sample.Distance);
+            Assert.Equal(10, sample.Weight);
+            Assert.Equal(new Vector3(0, 0, 3), sample.Position);
+            Assert.Equal(new Vector3(0, 0, 1), sample.Direction);
+            Assert.Equal(1, sample.Pdf);
         }
 
         [Fact]
@@ -103,6 +103,45 @@ namespace OpenPGL.NET.Tests {
 
             Assert.Equal(0u, storage.SizeSurface);
             Assert.Equal(0u, storage.SizeVolume);
+        }
+
+        [Fact]
+        public void PathSegment_RandomAccess() {
+            PathSegmentStorage storage = new();
+            storage.Reserve(10);
+
+            PathSegment segment1 = storage.NextSegment();
+            segment1.Position = new(0, 0, 0);
+
+            PathSegment segment = storage.NextSegment();
+            segment.Position = new(1, 2, 3);
+            segment.MiWeight = 1;
+            segment.Normal = Vector3.UnitZ;
+            segment.PDFDirectionIn = 1;
+            segment.DirectionIn = Vector3.UnitZ;
+            segment.DirectionOut = Vector3.UnitZ;
+            segment.Eta = 1.4f;
+            segment.Roughness = 0.5f;
+            segment.RussianRouletteProbability = 1.0f;
+            segment.ScatteredContribution = new(10, 10, 10);
+            segment.ScatteringWeight = new(1, 1, 1);
+
+            PathSegment segment3 = storage.NextSegment();
+            segment3.Position = new(0, 0, 0);
+
+            PathSegment segmentGet = storage[1];
+            segmentGet.Position = new(0, 1, 0);
+
+            System.Random rng = new(1337);
+            SamplerWrapper sampler = new(
+                () => (float)rng.NextDouble(),
+                () => new((float)rng.NextDouble(), (float)rng.NextDouble())
+            );
+            uint num = storage.PrepareSamples(false, sampler, true, true);
+
+            Assert.Equal(1u, num);
+            Assert.Equal(1, storage.Samples.Length);
+            Assert.Equal(1, storage.Samples[0].Distance);
         }
     }
 }
