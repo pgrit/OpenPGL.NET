@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GuidedPathTracer", "GuidedP
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenPGL.NET.Tests", "OpenPGL.NET.Tests\OpenPGL.NET.Tests.csproj", "{9893609C-4144-4640-955B-D9A8F8F6CBEC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Benchmark", "Benchmark\Benchmark.csproj", "{11FF2B20-8B24-40FA-A33C-C4E7CA879410}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -58,5 +60,17 @@ Global
 		{9893609C-4144-4640-955B-D9A8F8F6CBEC}.Release|x64.Build.0 = Release|Any CPU
 		{9893609C-4144-4640-955B-D9A8F8F6CBEC}.Release|x86.ActiveCfg = Release|Any CPU
 		{9893609C-4144-4640-955B-D9A8F8F6CBEC}.Release|x86.Build.0 = Release|Any CPU
+		{11FF2B20-8B24-40FA-A33C-C4E7CA879410}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{11FF2B20-8B24-40FA-A33C-C4E7CA879410}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{11FF2B20-8B24-40FA-A33C-C4E7CA879410}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{11FF2B20-8B24-40FA-A33C-C4E7CA879410}.Debug|x64.Build.0 = Debug|Any CPU
+		{11FF2B20-8B24-40FA-A33C-C4E7CA879410}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{11FF2B20-8B24-40FA-A33C-C4E7CA879410}.Debug|x86.Build.0 = Debug|Any CPU
+		{11FF2B20-8B24-40FA-A33C-C4E7CA879410}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{11FF2B20-8B24-40FA-A33C-C4E7CA879410}.Release|Any CPU.Build.0 = Release|Any CPU
+		{11FF2B20-8B24-40FA-A33C-C4E7CA879410}.Release|x64.ActiveCfg = Release|Any CPU
+		{11FF2B20-8B24-40FA-A33C-C4E7CA879410}.Release|x64.Build.0 = Release|Any CPU
+		{11FF2B20-8B24-40FA-A33C-C4E7CA879410}.Release|x86.ActiveCfg = Release|Any CPU
+		{11FF2B20-8B24-40FA-A33C-C4E7CA879410}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

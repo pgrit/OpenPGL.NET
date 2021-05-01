@@ -18,6 +18,10 @@ namespace OpenPGL.NET {
         }
     }
 
+    /// <summary>
+    /// Provides access to a random number generator via callbacks for the unmanaged API.
+    /// This is VERY SLOW due to multiple indirections and high overhead. Avoid if possible.
+    /// </summary>
     public struct SamplerWrapper {
         public delegate float Next1DFunc();
         public delegate Vector2 Next2DFunc();
@@ -30,8 +34,8 @@ namespace OpenPGL.NET {
             Next2D = next2d;
         }
 
-        internal float Next1DDummy(IntPtr _) => Next1D();
-        internal Vector2 Next2DDummy(IntPtr _) => Next2D();
+        internal float Next1DDummy(IntPtr _) => 0;
+        internal Vector2 Next2DDummy(IntPtr _) => new(0, 0);
 
         internal OpenPGL.Sampler ToUnmanaged() => new() {
             Next1D = Next1DDummy,

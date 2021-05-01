@@ -53,7 +53,7 @@ namespace OpenPGL.NET {
         public static extern void pglPathSegmentSetRegion(IntPtr data, IntPtr value);
     }
 
-    public class PathSegment {
+    public struct PathSegment {
         internal PathSegment(IntPtr data) {
             this.data = data;
         }

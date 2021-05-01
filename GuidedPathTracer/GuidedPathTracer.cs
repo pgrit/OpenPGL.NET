@@ -10,15 +10,24 @@ using TinyEmbree;
 namespace GuidedPathTracer {
     public class GuidedPathTracer : PathTracer {
         ThreadLocal<PathSegmentStorage> pathStorage = new();
+        Field guidingField;
+        SampleStorage sampleStorage;
 
         void InitGuiding() {
-            // Prepare cache for the training samples
+            guidingField = new();
+            guidingField.SceneBounds = new() {
+                Lower = scene.Bounds.Min,
+                Upper = scene.Bounds.Min
+            };
 
-            // Create guiding field
+            sampleStorage = new();
+            int numPixels = scene.FrameBuffer.Width * scene.FrameBuffer.Height;
+            sampleStorage.Reserve((uint)(MaxDepth * numPixels), 0);
         }
 
         void UpdateGuiding() {
-            // Fit / update the guiding field
+            guidingField.Update(sampleStorage, 1);
+            sampleStorage.Clear();
         }
 
         protected override void OnPreIteration(uint iterIdx) {
@@ -114,10 +123,7 @@ namespace GuidedPathTracer {
                 useNEEMiWeights: true,
                 guideDirectLight: true);
 
-            // SeeSharp.Common.Logger.Log($"Added {num} samples!");
-            Debug.Assert(num <= MaxDepth);
-
-            // pathStorage.Value.Clear();
+            sampleStorage.AddSamples(pathStorage.Value.Samples.ToArray());
         }
     }
 }

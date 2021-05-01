@@ -66,8 +66,15 @@ namespace OpenPGL.NET {
         public uint PrepareSamples(bool splatSamples, SamplerWrapper sampler, bool useNEEMiWeights,
                                    bool guideDirectLight) {
             Debug.Assert(!IsPrepared);
-            var samplerData = sampler.ToUnmanaged();
             IsPrepared = true;
+
+            // Only allocate the sampler if it is actually needed.
+            OpenPGL.Sampler samplerData;
+            if (splatSamples)
+                samplerData = sampler.ToUnmanaged();
+            else
+                samplerData = new() { };
+
             return (uint) OpenPGL.pglPathSegmentStoragePrepareSamples(storage, in splatSamples,
                 ref samplerData, useNEEMiWeights, guideDirectLight);
         }
