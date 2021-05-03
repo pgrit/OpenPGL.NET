@@ -1,0 +1,45 @@
+@using System.IO
+
+<div class="render-test">
+    <p>
+        <label>Scene filename: <input @bind="Setup.ScenePath" size="80" style="max-width: 100%;"/></label>
+    </p>
+    <p>
+        <label>SPP: <input type="number" min="1" max="1000" @bind="Setup.NumSamples"></label>
+        <label>Maximum bounces: <input type="number" min="1" max="1000" @bind="Setup.MaxDepth"></label>
+    </p>
+
+    @if (running) {
+        <p class="rendering-notification">Rendering ...</p>
+    } else {
+        <button @onclick="Run">Run</button>
+
+        if (renderResult != null) {
+            <ProbeImage Scene="@(Scene)" PreviewImageBase64="@(renderResult.AsBase64Png())" OnClick="@Query"/>
+        }
+
+        if (distributionImage != null) {
+            <div @onclick="UpdateProbePixel" style="width: @(resolution)px; height: @(resolution)px;">
+                <div style="background-color: crimson; width: 5px; height: 5px; position: relative;
+                            left: @(ProbePixelX)px; top: @(ProbePixelY)px; z-index: 1;"></div>
+                <img src="data:image/png;base64,@(distributionImage.AsBase64Png())"
+                    style="position: relative; top: -5px; vertical-align: top;"
+                />
+            </div>
+
+            <SceneExplorer Scene="@(Scene)"
+                ShowMarker="true"
+                CurrentPoint="@(queryPoint)"
+                CurrentDirection="@selectedDirection"
+                ArrowLength=arrowLength
+                ArrowRadius=arrowRadius>
+            </SceneExplorer>
+            <p>
+                <label>Arrow length: <input type="number" min="0.1" max="1000" @bind="arrowLength"></label>
+                <label>Arrow radius: <input type="number" min="0.0001" max="1" @bind="arrowRadius"></label>
+            </p>
+        } else {
+            <SceneExplorer Scene="@(Scene)" ShowMarker="false"></SceneExplorer>
+        }
+    }
+</div>

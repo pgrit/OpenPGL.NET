@@ -1,0 +1,9 @@
+@page "/distribution-viewer"
+@using Viewer.Components
+
+<h1>Hi there!</h1>
+
+<TestSceneRunner Setup="@(new TestSceneRunner.CaseInfo() {
+    MaxDepth = 5,
+    NumSamples = 1
+})"></TestSceneRunner>

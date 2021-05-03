@@ -1,0 +1,74 @@
+@using System.Numerics
+@using System.IO
+@if (previewImageData != null) {
+    <p>
+        <div @onclick="UpdateProbePixel" style="width: 640px; height: 480px;">
+            <div style="background-color: crimson; width: 5px; height: 5px; position: relative;
+                        left: @(ProbePixelX)px; top: @(ProbePixelY)px; z-index: 1;"></div>
+            <img src="data:image/png;base64,@previewImageData"
+                 style="position: relative; top: -5px; vertical-align: top;"
+            />
+        </div>
+    </p>
+}
+
+@code {
+    [Parameter]
+    public string PreviewFile {
+        get {
+            return previewFile;
+        }
+        set {
+            previewFile = value;
+            var bytes = File.ReadAllBytes(previewFile);
+            previewImageData = Convert.ToBase64String(bytes);
+        }
+    }
+
+    [Parameter]
+    public string PreviewImageBase64 {
+        get {
+            return previewImageData;
+        }
+        set {
+            previewImageData = value;
+        }
+    }
+
+    string previewFile;
+    protected string previewImageData;
+
+    [Parameter]
+    public SeeSharp.Scene Scene { get; set; }
+
+    public delegate Task OnClickAction(int col, int row, Vector3 pos);
+
+    [Parameter]
+    public OnClickAction OnClick { get; set; }
+
+    protected int ProbePixelX { get; set; }
+    protected int ProbePixelY { get; set; }
+
+    protected async Task UpdateProbePixel(MouseEventArgs e) {
+        ProbePixelX = (int)e.OffsetX;
+        ProbePixelY = (int)e.OffsetY;
+
+        // Compute the correct 3D point
+        Vector3 probePosition = Vector3.Zero;
+        await Task.Run(() => {
+            var ray = Scene.Camera.GenerateRay(
+                new Vector2(ProbePixelX, ProbePixelY),
+                new SeeSharp.Sampling.RNG(0)
+            ).Ray;
+            var hit = Scene.Raytracer.Trace(ray);
+            if (!hit) {
+                System.Console.WriteLine("Probe ray left scene!");
+                return;
+            }
+            probePosition = hit.Position;
+        });
+
+        if (OnClick != null)
+            await OnClick(ProbePixelX, ProbePixelY, probePosition);
+    }
+}

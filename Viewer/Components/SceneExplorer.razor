@@ -1,0 +1,24 @@
+@inherits ProbeImage
+
+<div>
+    @if (previewImageData != null) {
+        <p>
+            <div @onclick="UpdateProbePixel" style="width: 640px; height: 480px;">
+                <div style="background-color: crimson; width: 5px; height: 5px; position: relative;
+                            left: @(ProbePixelX)px; top: @(ProbePixelY)px; z-index: 1;"></div>
+                <img src="data:image/png;base64,@previewImageData"
+                     style="position: relative; top: -5px; vertical-align: top;"
+                />
+            </div>
+        </p>
+        <p style="margin-bottom: 0;">
+            <label>Yaw
+            <input style="width: 40px;" type="number" @bind="Yaw"/>
+            </label>
+
+            <label>Pitch
+            <input style="width: 40px;" type="number" @bind="Pitch" />
+            </label>
+        </p>
+    }
+</div>
