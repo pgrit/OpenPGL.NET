@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
@@ -13,23 +14,28 @@ namespace OpenPGL.NET {
             [MarshalAs(UnmanagedType.I1)] in bool useParallaxComp);
     }
 
-    public class Distribution {
-        IntPtr handle;
-        internal Distribution(IntPtr handle) {
-            this.handle = handle;
-        }
-    }
+    // public class Distribution {
+    //     IntPtr handle;
+    //     internal Distribution(IntPtr handle) {
+    //         this.handle = handle;
+    //     }
+    // }
 
-    public class Region {
+    public struct Region {
         internal IntPtr Handle;
 
         internal Region(IntPtr handle) {
             Handle = handle;
         }
 
-        public bool IsValid => OpenPGL.pglRegionGetValid(Handle);
+        public bool IsValid {
+            get {
+                Debug.Assert(Handle != IntPtr.Zero);
+                return OpenPGL.pglRegionGetValid(Handle);
+            }
+        }
 
-        public Distribution GetDistribution(Vector3 samplePosition, bool useParallaxComp)
-        => new(OpenPGL.pglRegionGetDistribution(Handle, samplePosition, useParallaxComp));
+        // public Distribution GetDistribution(Vector3 samplePosition, bool useParallaxComp)
+        // => new(OpenPGL.pglRegionGetDistribution(Handle, samplePosition, useParallaxComp));
     }
 }

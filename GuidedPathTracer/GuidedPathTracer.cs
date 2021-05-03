@@ -1,6 +1,6 @@
+using System;
 using System.Numerics;
 using System.Threading;
-using System.Diagnostics;
 using OpenPGL.NET;
 using SeeSharp.Geometry;
 using SeeSharp.Sampling;
@@ -10,14 +10,16 @@ using TinyEmbree;
 namespace GuidedPathTracer {
     public class GuidedPathTracer : PathTracer {
         ThreadLocal<PathSegmentStorage> pathStorage = new();
-        Field guidingField;
+        public Field GuidingField;
         SampleStorage sampleStorage;
 
-        void InitGuiding() {
-            guidingField = new();
-            guidingField.SceneBounds = new() {
+        protected override void OnPrepareRender() {
+            GuidingField = new(new(){
+                SpatialSettings = new KdTreeSettings() { KnnLookup = false }
+            });
+            GuidingField.SceneBounds = new() {
                 Lower = scene.Bounds.Min,
-                Upper = scene.Bounds.Min
+                Upper = scene.Bounds.Max
             };
 
             sampleStorage = new();
@@ -25,19 +27,9 @@ namespace GuidedPathTracer {
             sampleStorage.Reserve((uint)(MaxDepth * numPixels), 0);
         }
 
-        void UpdateGuiding() {
-            guidingField.Update(sampleStorage, 1);
+        protected override void OnPostIteration(uint iterIdx) {
+            GuidingField.Update(sampleStorage, 1);
             sampleStorage.Clear();
-        }
-
-        protected override void OnPreIteration(uint iterIdx) {
-            base.OnPreIteration(iterIdx);
-
-            if (iterIdx == 0) {
-                InitGuiding();
-            } else {
-                UpdateGuiding();
-            }
         }
 
         protected override void OnStartPath(PathState state) {

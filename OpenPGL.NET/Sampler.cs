@@ -34,8 +34,8 @@ namespace OpenPGL.NET {
             Next2D = next2d;
         }
 
-        internal float Next1DDummy(IntPtr _) => 0;
-        internal Vector2 Next2DDummy(IntPtr _) => new(0, 0);
+        internal float Next1DDummy(IntPtr _) => Next1D();
+        internal Vector2 Next2DDummy(IntPtr _) => Next2D();
 
         internal OpenPGL.Sampler ToUnmanaged() => new() {
             Next1D = Next1DDummy,
