@@ -5,7 +5,7 @@ namespace GuidedPathTracer {
     class Program {
         static Process ShortTest() {
             SceneRegistry.AddSource("../Scenes");
-            Benchmark benchmark = new(new Experiment(32), new() {
+            Benchmark benchmark = new(new Experiment(16), new() {
                 // SceneRegistry.LoadScene("HomeOffice"),
                 SceneRegistry.LoadScene("CornellBox"),
                 // SceneRegistry.LoadScene("RoughGlassesIndirect", maxDepth: 10),

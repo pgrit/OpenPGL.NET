@@ -88,7 +88,8 @@ namespace OpenPGL.NET {
         public static extern void pglFieldUpdate(IntPtr field, IntPtr sampleStorage, UIntPtr numPerPixelSamples);
 
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr pglFieldGetSurfaceRegion(IntPtr field, Vector3 position, [In] ref Sampler sampler);
+        public static extern IntPtr pglFieldGetSurfaceRegion(IntPtr field, Vector3 position, IntPtr sampler);
+        // public static extern IntPtr pglFieldGetSurfaceRegion(IntPtr field, Vector3 position, [In] ref Sampler sampler);
 
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr pglFieldGetVolumeRegion(IntPtr field, Vector3 position, [In] ref Sampler sampler);
@@ -165,8 +166,9 @@ namespace OpenPGL.NET {
         public uint TotalSPP => OpenPGL.pglFieldGetTotalSPP(handle);
 
         public Region GetSurfaceRegion(Vector3 position, SamplerWrapper sampler) {
-            var s = sampler.ToUnmanaged();
-            return new(OpenPGL.pglFieldGetSurfaceRegion(handle, position, ref s));
+            // var s = sampler.ToUnmanaged();
+            // TODO / HACK assumes knn == false
+            return new(OpenPGL.pglFieldGetSurfaceRegion(handle, position, /*ref s*/IntPtr.Zero));
         }
 
         public Region GetVolumeRegion(Vector3 position, SamplerWrapper sampler) {

@@ -297,7 +297,7 @@ namespace GuidedPathTracer {
             if (scene.Raytracer.LeavesScene(hit, sample.Direction)) {
                 var bsdfTimesCosine = hit.Material.EvaluateWithCosine(
                     hit, -ray.Direction, sample.Direction, false);
-                var pdfBsdf = DirectionPdf(hit, -ray.Direction, sample.Direction);
+                var pdfBsdf = DirectionPdf(hit, -ray.Direction, sample.Direction, state);
 
                 // Prevent NaN / Inf
                 if (pdfBsdf == 0 || sample.Pdf == 0)
@@ -340,7 +340,7 @@ namespace GuidedPathTracer {
 
                 // Compute surface area PDFs
                 float pdfNextEvt = lightSample.Pdf * lightSelectProb * NumShadowRays;
-                float pdfBsdfSolidAngle = DirectionPdf(hit, -ray.Direction, -lightToSurface);
+                float pdfBsdfSolidAngle = DirectionPdf(hit, -ray.Direction, -lightToSurface, state);
                 float pdfBsdf = pdfBsdfSolidAngle * jacobian;
 
                 // Avoid Inf / NaN
@@ -362,7 +362,7 @@ namespace GuidedPathTracer {
             return RgbColor.Black;
         }
 
-        protected virtual float DirectionPdf(SurfacePoint hit, Vector3 outDir, Vector3 sampledDir)
+        protected virtual float DirectionPdf(SurfacePoint hit, Vector3 outDir, Vector3 sampledDir, PathState state)
         => hit.Material.Pdf(hit, outDir, sampledDir, false).Item1;
 
         protected virtual (Ray, float, RgbColor) SampleDirection(Ray ray, SurfacePoint hit, PathState state) {
