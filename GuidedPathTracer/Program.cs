@@ -7,7 +7,7 @@ namespace GuidedPathTracer {
             SceneRegistry.AddSource("../Scenes");
             Benchmark benchmark = new(new Experiment(16), new() {
                 // SceneRegistry.LoadScene("HomeOffice"),
-                SceneRegistry.LoadScene("CornellBox"),
+                SceneRegistry.LoadScene("CornellBox", maxDepth: 5),
                 // SceneRegistry.LoadScene("RoughGlassesIndirect", maxDepth: 10),
                 // SceneRegistry.LoadScene("GlassBall", maxDepth: 10),
             }, "Results", 640, 480);

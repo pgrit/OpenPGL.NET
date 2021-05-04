@@ -7,11 +7,13 @@ namespace GuidedPathTracer {
         public Experiment(int numSamples) => this.numSamples = numSamples;
 
         public override List<Method> MakeMethods() => new() {
-            // new("PathTracer", new SeeSharp.Integrators.PathTracer() {
-            //     TotalSpp = numSamples
-            // }),
+            new("PathTracer", new SeeSharp.Integrators.PathTracer() {
+                TotalSpp = numSamples,
+                NumShadowRays = 1
+            }),
             new("Guided", new GuidedPathTracer() {
-                TotalSpp = numSamples
+                TotalSpp = numSamples,
+                NumShadowRays = 1,
             })
         };
     }

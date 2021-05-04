@@ -31,14 +31,17 @@ namespace GuidedPathTracer {
             sampleStorage.Reserve((uint)(MaxDepth * numPixels), 0);
 
             GuidingEnabled = false;
+            NumShadowRays = 1;
         }
 
         protected override void OnPostIteration(uint iterIdx) {
             GuidingField.Update(sampleStorage, 1);
             sampleStorage.Clear();
 
-            if (iterIdx > 2)
+            if (iterIdx > 1) {
                 GuidingEnabled = true;
+                NumShadowRays = 1;
+            }
         }
 
         protected override void OnStartPath(PathState state) {
@@ -121,6 +124,7 @@ namespace GuidedPathTracer {
             var inDir = Vector3.Normalize(nextRay.Direction);
             segment.DirectionIn = inDir;
             segment.PDFDirectionIn = pdf;
+            segment.ScatteringWeight = new(contrib.R, contrib.G, contrib.B);
 
             // Material data
             segment.Roughness = hit.Material.GetRoughness(hit);
@@ -138,7 +142,7 @@ namespace GuidedPathTracer {
                 return base.DirectionPdf(hit, outDir, sampledDir, state);
 
             float bsdfPdf = base.DirectionPdf(hit, outDir, sampledDir, state) * (1 - selectGuideProb);
-            float guidePdf = distribution.PDF(sampledDir) * selectGuideProb;
+            float guidePdf = distribution.PDF(Vector3.Normalize(sampledDir)) * selectGuideProb;
             distribution?.Clear();
             return bsdfPdf + guidePdf;
         }
