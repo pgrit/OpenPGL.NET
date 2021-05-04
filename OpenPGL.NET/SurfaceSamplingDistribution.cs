@@ -48,8 +48,10 @@ namespace OpenPGL.NET {
         public Vector3 Sample(Vector2 sample2D)
         => OpenPGL.pglSurfaceSamplingDistributionSample(handle, sample2D);
 
-        public float PDF(Vector3 direction)
-        => OpenPGL.pglSurfaceSamplingDistributionPDF(handle, direction);
+        public float PDF(Vector3 direction) {
+            Common.AssertNormalized(direction);
+            return OpenPGL.pglSurfaceSamplingDistributionPDF(handle, direction);
+        }
 
         public bool IsValid => OpenPGL.pglSurfaceSamplingDistributionIsValid(handle);
 

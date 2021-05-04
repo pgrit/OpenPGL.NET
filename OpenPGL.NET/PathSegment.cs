@@ -60,9 +60,19 @@ namespace OpenPGL.NET {
 
         public Vector3 Position { set { OpenPGL.pglPathSegmentSetPosition(data, value); } }
         public Vector3 Normal { set { OpenPGL.pglPathSegmentSetNormal(data, value); } }
-        public Vector3 DirectionIn { set { OpenPGL.pglPathSegmentSetDirectionIn(data, value); } }
+        public Vector3 DirectionIn {
+            set {
+                Common.AssertNormalized(value);
+                OpenPGL.pglPathSegmentSetDirectionIn(data, value);
+            }
+        }
         public float PDFDirectionIn { set { OpenPGL.pglPathSegmentSetPDFDirectionIn(data, value); } }
-        public Vector3 DirectionOut { set { OpenPGL.pglPathSegmentSetDirectionOut(data, value); } }
+        public Vector3 DirectionOut {
+            set {
+                Common.AssertNormalized(value);
+                OpenPGL.pglPathSegmentSetDirectionOut(data, value);
+            }
+        }
         public bool VolumeScatter { set { OpenPGL.pglPathSegmentSetVolumeScatter(data, value); } }
         public Vector3 ScatteringWeight { set { OpenPGL.pglPathSegmentSetScatteringWeight(data, value); } }
         public Vector3 DirectContribution { set { OpenPGL.pglPathSegmentSetDirectContribution(data, value); } }
