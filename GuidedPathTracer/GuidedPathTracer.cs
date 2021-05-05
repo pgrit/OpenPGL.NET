@@ -31,17 +31,13 @@ namespace GuidedPathTracer {
             sampleStorage.Reserve((uint)(MaxDepth * numPixels), 0);
 
             GuidingEnabled = false;
-            NumShadowRays = 1;
         }
 
         protected override void OnPostIteration(uint iterIdx) {
             GuidingField.Update(sampleStorage, 1);
             sampleStorage.Clear();
 
-            if (iterIdx > 1) {
-                GuidingEnabled = true;
-                NumShadowRays = 1;
-            }
+            GuidingEnabled = true;
         }
 
         protected override void OnStartPath(PathState state) {
@@ -186,7 +182,7 @@ namespace GuidedPathTracer {
                 sampler: sampler,
                 splatSamples: false,
                 useNEEMiWeights: false,
-                guideDirectLight: true);
+                guideDirectLight: false);
 
             sampleStorage.AddSamples(pathStorage.Value.Samples.ToArray());
         }
