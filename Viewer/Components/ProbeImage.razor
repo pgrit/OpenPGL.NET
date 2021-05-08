@@ -1,15 +1,12 @@
 @using System.Numerics
 @using System.IO
+@using SeeSharp.Geometry
+@using TinyEmbree
 @if (previewImageData != null) {
-    <p>
-        <div @onclick="UpdateProbePixel" style="width: 640px; height: 480px;">
-            <div style="background-color: crimson; width: 5px; height: 5px; position: relative;
-                        left: @(ProbePixelX)px; top: @(ProbePixelY)px; z-index: 1;"></div>
-            <img src="data:image/png;base64,@previewImageData"
-                 style="position: relative; top: -5px; vertical-align: top;"
-            />
-        </div>
-    </p>
+    <div class="probe-container" @onclick="UpdateProbePixel" style="width: @(Width)px; height: @(Height)px;">
+        <div class="probe-marker" style="left: @(ProbePixelX)px; top: @(ProbePixelY)px;"></div>
+        <img class="probe-image" src="data:image/png;base64,@previewImageData"/>
+    </div>
 }
 
 @code {
@@ -24,6 +21,12 @@
             previewImageData = Convert.ToBase64String(bytes);
         }
     }
+
+    [Parameter]
+    public int Width { get; set; }
+
+    [Parameter]
+    public int Height { get; set; }
 
     [Parameter]
     public string PreviewImageBase64 {
@@ -41,7 +44,7 @@
     [Parameter]
     public SeeSharp.Scene Scene { get; set; }
 
-    public delegate Task OnClickAction(int col, int row, Vector3 pos);
+    public delegate Task OnClickAction(int col, int row, Ray ray, SurfacePoint hit);
 
     [Parameter]
     public OnClickAction OnClick { get; set; }
@@ -54,21 +57,21 @@
         ProbePixelY = (int)e.OffsetY;
 
         // Compute the correct 3D point
-        Vector3 probePosition = Vector3.Zero;
+        SurfacePoint probePoint = new();
+        Ray ray = Scene.Camera.GenerateRay(
+            new Vector2(ProbePixelX, ProbePixelY),
+            new SeeSharp.Sampling.RNG(0)
+        ).Ray;
         await Task.Run(() => {
-            var ray = Scene.Camera.GenerateRay(
-                new Vector2(ProbePixelX, ProbePixelY),
-                new SeeSharp.Sampling.RNG(0)
-            ).Ray;
             var hit = Scene.Raytracer.Trace(ray);
             if (!hit) {
                 System.Console.WriteLine("Probe ray left scene!");
                 return;
             }
-            probePosition = hit.Position;
+            probePoint = hit;
         });
 
         if (OnClick != null)
-            await OnClick(ProbePixelX, ProbePixelY, probePosition);
+            await OnClick(ProbePixelX, ProbePixelY, ray, probePoint);
     }
 }

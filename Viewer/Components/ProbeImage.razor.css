@@ -1,0 +1,11 @@
+.probe-marker {
+    background-color: crimson;
+    width: 5px;
+    height: 5px;
+    position: relative;
+    z-index: 1;
+}
+
+.probe-image {
+    position: relative; top: -5px; vertical-align: top;
+}
