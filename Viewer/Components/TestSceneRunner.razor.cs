@@ -51,13 +51,31 @@ namespace Viewer.Components {
         int resolution = 640;
         Vector3 upVector = Vector3.UnitY;
 
+        float exposure {
+            get => curExposure;
+            set {
+                lastExposure = curExposure;
+                curExposure = value;
+                if (curExposure != lastExposure) {
+                    float newScale = MathF.Pow(2.0f, curExposure);
+                    float oldScale = MathF.Pow(2.0f, lastExposure);
+                    float correction = newScale / oldScale;
+
+                    renderResult?.Scale(correction);
+                    probeImage?.Scale(correction);
+                }
+            }
+        }
+        float curExposure = 0;
+        float lastExposure = 0;
+
         async Task Run() {
             running = true;
-            StateHasChanged();
-            SetupChangedCallback?.Invoke();
 
-            // TODO remove hack
-            Setup.ScenePath = "../Scenes/CornellBox/CornellBox.json";
+            StateHasChanged();
+
+            // Notify our parent that the user triggered a run with a potentially modified setup
+            SetupChangedCallback?.Invoke();
 
             await Task.Run(() => {
                 var sceneLoader = new SceneFromFile(Setup.ScenePath, Setup.MaxDepth);
@@ -72,6 +90,7 @@ namespace Viewer.Components {
                 integrator.Render(Scene);
 
                 renderResult = Scene.FrameBuffer.Image;
+                renderResult.Scale(MathF.Pow(2.0f, curExposure));
             });
 
             await Task.Run(() => regionVisImage = MakeRegionVisImage());
@@ -152,7 +171,10 @@ namespace Viewer.Components {
                 await Task.Run(() => distributionImage = MakeDistributionImage(distrib, resolution));
             }
 
-            await Task.Run(() => probeImage = MakeProbeImage(ray, point, resolution));
+            await Task.Run(() => {
+                probeImage = MakeProbeImage(ray, point, resolution);
+                probeImage.Scale(MathF.Pow(2.0f, curExposure));
+            });
 
             queryPoint = point.Position;
             selectedDirection = Vector3.UnitZ;

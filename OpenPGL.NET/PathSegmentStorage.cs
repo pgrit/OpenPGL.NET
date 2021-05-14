@@ -81,11 +81,12 @@ namespace OpenPGL.NET {
 
         public unsafe Span<SampleData> Samples {
             get {
-                UIntPtr num;
-                IntPtr ptr = OpenPGL.pglPathSegmentStorageGetSamples(storage, out num);
+                IntPtr ptr = OpenPGL.pglPathSegmentStorageGetSamples(storage, out UIntPtr num);
                 return new(ptr.ToPointer(), (int)num);
             }
         }
+
+        public IntPtr SamplesRawPointer => OpenPGL.pglPathSegmentStorageGetSamples(storage, out _);
 
         public void AddSample(SampleData sample) => OpenPGL.pglPathSegmentStorageAddSample(storage, sample);
 

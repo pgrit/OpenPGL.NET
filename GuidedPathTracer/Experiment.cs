@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using SeeSharp.Integrators.Bidir;
 
 namespace GuidedPathTracer {
     public class Experiment : SeeSharp.Experiments.Experiment {
@@ -7,14 +8,17 @@ namespace GuidedPathTracer {
         public Experiment(int numSamples) => this.numSamples = numSamples;
 
         public override List<Method> MakeMethods() => new() {
-            new("PathTracer", new SeeSharp.Integrators.PathTracer() {
-                TotalSpp = numSamples,
-                NumShadowRays = 1
-            }),
+            // new("PathTracer", new SeeSharp.Integrators.PathTracer() {
+            //   TotalSpp = numSamples,
+            //   NumShadowRays = 1
+            // }),
             new("Guided", new GuidedPathTracer() {
                 TotalSpp = numSamples,
                 NumShadowRays = 1,
-            })
+            }),
+            // new("Vcm", new VertexConnectionAndMerging() {
+            //    NumIterations = numSamples / 2,
+            // })
         };
     }
 }

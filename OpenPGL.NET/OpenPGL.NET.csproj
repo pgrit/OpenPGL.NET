@@ -14,4 +14,23 @@
       Condition="Exists('../Runtimes/libopenpgl.so.0.1.0')"/>
   </ItemGroup>
 
+  <!-- Windows -->
+  <ItemGroup>
+    <Content CopyToOutputDirectory="PreserveNewest"
+      Include="../Runtimes/openpgl.dll"
+      Pack="true"
+      PackagePath="runtimes/win-x64/native/"
+      Condition="Exists('../Runtimes/openpgl.dll')"/>
+    <Content CopyToOutputDirectory="PreserveNewest"
+      Include="../Runtimes/embree3.dll"
+      Pack="true"
+      PackagePath="runtimes/win-x64/native/"
+      Condition="Exists('../Runtimes/embree3.dll')"/>
+    <Content CopyToOutputDirectory="PreserveNewest"
+      Include="../Runtimes/tbb.dll"
+      Pack="true"
+      PackagePath="runtimes/win-x64/native/"
+      Condition="Exists('../Runtimes/tbb.dll')"/>
+  </ItemGroup>
+
 </Project>

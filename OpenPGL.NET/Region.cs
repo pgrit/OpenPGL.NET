@@ -25,12 +25,13 @@ namespace OpenPGL.NET {
         internal IntPtr Handle;
 
         internal Region(IntPtr handle) {
+            Debug.Assert(handle != IntPtr.Zero);
             Handle = handle;
         }
 
         public bool IsValid {
             get {
-                Debug.Assert(Handle != IntPtr.Zero);
+                if (Handle == IntPtr.Zero) return false;
                 return OpenPGL.pglRegionGetValid(Handle);
             }
         }

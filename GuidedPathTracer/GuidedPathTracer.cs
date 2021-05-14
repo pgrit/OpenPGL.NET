@@ -22,8 +22,8 @@ namespace GuidedPathTracer {
                 SpatialSettings = new KdTreeSettings() { KnnLookup = false }
             });
             GuidingField.SceneBounds = new() {
-                Lower = scene.Bounds.Min,
-                Upper = scene.Bounds.Max
+                Lower = scene.Bounds.Min - scene.Bounds.Diagonal * 0.01f,
+                Upper = scene.Bounds.Max + scene.Bounds.Diagonal * 0.01f
             };
 
             sampleStorage = new();
@@ -60,13 +60,16 @@ namespace GuidedPathTracer {
         }
 
         protected virtual float ComputeGuidingSelectProbability(Vector3 outDir, SurfacePoint hit, PathState state) {
+            float roughness = hit.Material.GetRoughness(hit);
+            if (roughness < 0.1f) return 0;
             return 0.5f;
         }
 
         protected SurfaceSamplingDistribution GetDistribution(Vector3 outDir, SurfacePoint hit, PathState state) {
             SurfaceSamplingDistribution distribution = null;
             if (GuidingEnabled) {
-                SamplerWrapper sampler = new(state.Rng.NextFloat, state.Rng.NextFloat2D);
+                // TODO adapt to new interface (primary sample values instead of sampler)
+                SamplerWrapper sampler = new(null, null);
                 Region region = GuidingField.GetSurfaceRegion(hit.Position, sampler);
                 Debug.Assert(region.IsValid);
 
@@ -83,7 +86,11 @@ namespace GuidedPathTracer {
             Vector3 outDir = Vector3.Normalize(-ray.Direction);
             SurfaceSamplingDistribution distribution = GetDistribution(outDir, hit, state);
 
-            float selectGuideProb = GuidingEnabled ? ComputeGuidingSelectProbability(outDir, hit, state) : 0;
+            float selectGuideProb =
+                GuidingEnabled && distribution != null
+                ? ComputeGuidingSelectProbability(outDir, hit, state)
+                : 0;
+
             Ray nextRay;
             float guidePdf = 0, bsdfPdf;
             RgbColor contrib;
@@ -98,10 +105,14 @@ namespace GuidedPathTracer {
                 contrib = hit.Material.EvaluateWithCosine(hit, outDir, sampledDir, false);
                 contrib /= guidePdf + bsdfPdf;
 
-                nextRay = scene.Raytracer.SpawnRay(hit, sampledDir);
+                nextRay = Raytracer.SpawnRay(hit, sampledDir);
             } else { // Sample the BSDF (default)
                 (nextRay, bsdfPdf, contrib) = base.SampleDirection(ray, hit, state);
                 bsdfPdf *= (1 - selectGuideProb);
+
+                if (bsdfPdf == 0) { // prevent NaNs / Infs
+                    return (new(), 0, RgbColor.Black);
+                }
 
                 if (GuidingEnabled && selectGuideProb > 0) {
                     Debug.Assert(MathF.Abs(nextRay.Direction.LengthSquared() - 1) < 0.001f);
@@ -114,13 +125,17 @@ namespace GuidedPathTracer {
 
             distribution?.Clear();
 
-            // Update the incident direction and PDF in the current path segment
             float pdf = guidePdf + bsdfPdf;
+            if (pdf == 0) { // prevent NaNs / Infs
+                return (new(), 0, RgbColor.Black);
+            }
+
+            // Update the incident direction and PDF in the current path segment
             var segment = pathStorage.Value.GetSegment(state.Depth - 1);
             var inDir = Vector3.Normalize(nextRay.Direction);
             segment.DirectionIn = inDir;
             segment.PDFDirectionIn = pdf;
-            segment.ScatteringWeight = new(contrib.R, contrib.G, contrib.B);
+            segment.ScatteringWeight = contrib;
 
             // Material data
             segment.Roughness = hit.Material.GetRoughness(hit);
@@ -132,9 +147,13 @@ namespace GuidedPathTracer {
         protected override float DirectionPdf(SurfacePoint hit, Vector3 outDir, Vector3 sampledDir,
                                               PathState state) {
             SurfaceSamplingDistribution distribution = GetDistribution(outDir, hit, state);
-            float selectGuideProb = GuidingEnabled ? ComputeGuidingSelectProbability(outDir, hit, state) : 0;
 
-            if (!GuidingEnabled || selectGuideProb <= 0)
+            float selectGuideProb =
+                GuidingEnabled && distribution != null
+                ? ComputeGuidingSelectProbability(outDir, hit, state)
+                : 0;
+
+            if (!GuidingEnabled || selectGuideProb <= 0 || distribution == null)
                 return base.DirectionPdf(hit, outDir, sampledDir, state);
 
             float bsdfPdf = base.DirectionPdf(hit, outDir, sampledDir, state) * (1 - selectGuideProb);
@@ -150,8 +169,7 @@ namespace GuidedPathTracer {
             var contrib = misWeight * estimate;
             // TODO this assumes that we have a single shadow ray. Should be += instead, which requires
             //      that the PGL API supports a getter for this value
-            // TODO can use implicit cast from RgbColor -> Vector3 with latest SimpleImageIO version
-            segment.ScatteredContribution = new(contrib.R, contrib.G, contrib.B);
+            segment.ScatteredContribution = contrib;
         }
 
         protected override void OnHitLightResult(Ray ray, PathState state, float misWeight, RgbColor emission,
@@ -168,7 +186,7 @@ namespace GuidedPathTracer {
             var segment = pathStorage.Value.GetSegment(state.Depth - 1);
 
             segment.MiWeight = misWeight;
-            segment.DirectContribution = new(emission.R, emission.G, emission.B);
+            segment.DirectContribution = emission;
         }
 
         protected override void OnFinishedPath(Vector2 pixel, RNG rng, RadianceEstimate estimate) {
@@ -177,14 +195,14 @@ namespace GuidedPathTracer {
             }
 
             // Generate the samples and add them to the global cache
-            SamplerWrapper sampler = new(rng.NextFloat, rng.NextFloat2D);
+            // TODO provide sampler (with more efficient wrapper)
+            SamplerWrapper sampler = new(null, null);
             uint num = pathStorage.Value.PrepareSamples(
                 sampler: sampler,
                 splatSamples: false,
                 useNEEMiWeights: false,
                 guideDirectLight: false);
-
-            sampleStorage.AddSamples(pathStorage.Value.Samples.ToArray());
+            sampleStorage.AddSamples(pathStorage.Value.SamplesRawPointer, num);
         }
     }
 }

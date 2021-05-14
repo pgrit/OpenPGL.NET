@@ -1,7 +1,8 @@
 @page "/distribution-viewer"
 @using Viewer.Components
 
-<TestSceneRunner Setup="@(new TestSceneRunner.CaseInfo() {
+<TestSceneRunner Setup=@(new() {
     MaxDepth = 5,
-    NumSamples = 1
-})"></TestSceneRunner>
+    NumSamples = 1,
+    ScenePath = "../Scenes/Pool/Pool.json"
+})></TestSceneRunner>

@@ -2,5 +2,10 @@
 obj
 bin
 
+# IDE generated / user-specific
+*.csproj.user
+/.vs
+launchSettings.json
+
 # rendering results
 /*/Results/*

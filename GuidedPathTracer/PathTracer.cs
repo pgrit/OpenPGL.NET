@@ -368,7 +368,7 @@ namespace GuidedPathTracer {
         protected virtual (Ray, float, RgbColor) SampleDirection(Ray ray, SurfacePoint hit, PathState state) {
             var primary = state.Rng.NextFloat2D();
             var bsdfSample = hit.Material.Sample(hit, -ray.Direction, false, primary);
-            var bsdfRay = scene.Raytracer.SpawnRay(hit, bsdfSample.direction);
+            var bsdfRay = Raytracer.SpawnRay(hit, bsdfSample.direction);
             return (bsdfRay, bsdfSample.pdf, bsdfSample.weight);
         }
     }
