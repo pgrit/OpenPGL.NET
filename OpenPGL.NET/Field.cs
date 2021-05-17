@@ -88,11 +88,11 @@ namespace OpenPGL.NET {
         public static extern void pglFieldUpdate(IntPtr field, IntPtr sampleStorage, UIntPtr numPerPixelSamples);
 
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr pglFieldGetSurfaceRegion(IntPtr field, Vector3 position, IntPtr sampler);
-        // public static extern IntPtr pglFieldGetSurfaceRegion(IntPtr field, Vector3 position, [In] ref Sampler sampler);
+        // public static extern IntPtr pglFieldGetSurfaceRegion(IntPtr field, Vector3 position, IntPtr sampler);
+        public static extern IntPtr pglFieldGetSurfaceRegion(IntPtr field, Vector3 position, in Sampler sampler);
 
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr pglFieldGetVolumeRegion(IntPtr field, Vector3 position, [In] ref Sampler sampler);
+        public static extern IntPtr pglFieldGetVolumeRegion(IntPtr field, Vector3 position, in Sampler sampler);
 
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
         public static extern void pglFieldSetSceneBounds(IntPtr field, BoundingBox bounds);
@@ -147,10 +147,27 @@ namespace OpenPGL.NET {
     public class Field : IDisposable {
         IntPtr handle;
 
-        public Field(FieldSettings settings = new()) {
+        OpenPGL.Sampler sampler;
+        OpenPGL.Sampler.PGLSamplerNext1DFunction next1d;
+        OpenPGL.Sampler.PGLSamplerNext2DFunction next2d;
+        Random rng;
+
+        public Field(FieldSettings settings = new(), int knnSamplerSeed = 42133742) {
             var arguments = settings.MakeArguments();
             handle = OpenPGL.pglNewField(arguments);
             Debug.Assert(handle != IntPtr.Zero);
+
+            // We pre-allocate a global sampler for stochastic knn lookups. The disadvantage is that the user
+            // has no control over the sampling. But the severe overhead of GetFunctionPointerForDelegate()
+            // is avoided. An alternative would be to put the burden on the user to pre-allocate a delegate
+            // and feed it with the correct information via the IntPtr sized user data.
+            rng = new(knnSamplerSeed);
+            next1d = _ => { lock (rng) return (float)rng.NextDouble(); };
+            next2d = _ => { lock (rng) return new((float)rng.NextDouble(), (float)rng.NextDouble()); };
+            sampler = new() {
+                Next1D = Marshal.GetFunctionPointerForDelegate(next1d),
+                Next2D = Marshal.GetFunctionPointerForDelegate(next2d)
+            };
         }
 
         public void Dispose() {
@@ -165,16 +182,11 @@ namespace OpenPGL.NET {
         public uint Iteration => OpenPGL.pglFieldGetIteration(handle);
         public uint TotalSPP => OpenPGL.pglFieldGetTotalSPP(handle);
 
-        public Region GetSurfaceRegion(Vector3 position, SamplerWrapper sampler) {
-            // var s = sampler.ToUnmanaged();
-            // TODO / HACK assumes knn == false
-            return new(OpenPGL.pglFieldGetSurfaceRegion(handle, position, /*ref s*/IntPtr.Zero));
-        }
+        public Region GetSurfaceRegion(Vector3 position)
+        => new(OpenPGL.pglFieldGetSurfaceRegion(handle, position, sampler));
 
-        public Region GetVolumeRegion(Vector3 position, SamplerWrapper sampler) {
-            var s = sampler.ToUnmanaged();
-            return new(OpenPGL.pglFieldGetVolumeRegion(handle, position, ref s));
-        }
+        public Region GetVolumeRegion(Vector3 position)
+        => new(OpenPGL.pglFieldGetVolumeRegion(handle, position, sampler));
 
         public void Update(SampleStorage storage, uint numPerPixelSamples)
         => OpenPGL.pglFieldUpdate(handle, storage.Handle, new(numPerPixelSamples));

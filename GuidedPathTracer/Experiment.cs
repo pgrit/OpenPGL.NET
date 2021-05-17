@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using OpenPGL.NET;
 using SeeSharp.Integrators.Bidir;
 
 namespace GuidedPathTracer {
@@ -8,17 +9,23 @@ namespace GuidedPathTracer {
         public Experiment(int numSamples) => this.numSamples = numSamples;
 
         public override List<Method> MakeMethods() => new() {
-            // new("PathTracer", new SeeSharp.Integrators.PathTracer() {
-            //   TotalSpp = numSamples,
-            //   NumShadowRays = 1
-            // }),
+            new("PathTracer", new SeeSharp.Integrators.PathTracer() {
+              TotalSpp = numSamples,
+              NumShadowRays = 1,
+            }),
             new("Guided", new GuidedPathTracer() {
                 TotalSpp = numSamples,
                 NumShadowRays = 1,
+                SpatialSettings = new KdTreeSettings() { KnnLookup = false }
             }),
-            // new("Vcm", new VertexConnectionAndMerging() {
-            //    NumIterations = numSamples / 2,
-            // })
+            new("GuidedKnn", new GuidedPathTracer() {
+                TotalSpp = numSamples,
+                NumShadowRays = 1,
+                SpatialSettings = new KdTreeSettings() { KnnLookup = true }
+            }),
+            new("Vcm", new VertexConnectionAndMerging() {
+               NumIterations = numSamples / 2,
+            })
         };
     }
 }

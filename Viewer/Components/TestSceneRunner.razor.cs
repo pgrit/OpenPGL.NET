@@ -84,7 +84,9 @@ namespace Viewer.Components {
                 Scene.Prepare();
 
                 integrator = new() {
-                    TotalSpp = Setup.NumSamples
+                    TotalSpp = Setup.NumSamples,
+                    MaxDepth = Setup.MaxDepth,
+                    SpatialSettings = new KdTreeSettings() { KnnLookup = false }
                 };
 
                 integrator.Render(Scene);
@@ -153,13 +155,7 @@ namespace Viewer.Components {
 
         async Task Query(int col, int row, Ray ray, SurfacePoint point) {
             // Query the guiding cache at the given position
-            System.Random rng = new(1337);
-            SamplerWrapper sampler = new(
-                () => (float)rng.NextDouble(),
-                () => new((float)rng.NextDouble(), (float)rng.NextDouble())
-            );
-
-            var region = integrator.GuidingField.GetSurfaceRegion(point.Position, sampler);
+            var region = integrator.GuidingField.GetSurfaceRegion(point.Position);
             if (!region.IsValid)
                 Console.WriteLine("Invalid scene region selected.");
 

@@ -21,12 +21,7 @@ namespace GuidedPathTracer {
             var value = base.ComputeColor(hit, from).Average;
 
             // Look up the containing region of the guiding field
-            System.Random rng = new(1337);
-            SamplerWrapper sampler = new(
-                () => (float)rng.NextDouble(),
-                () => new((float)rng.NextDouble(), (float)rng.NextDouble())
-            );
-            var region = GuidingField.GetSurfaceRegion(hit.Position, sampler);
+            var region = GuidingField.GetSurfaceRegion(hit.Position);
 
             // Assign a color to this region based on its hash code
             int hash = region.GetHashCode();

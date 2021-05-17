@@ -5,7 +5,7 @@ from figuregen.util.image import Cropbox, lin_to_srgb, exposure
 import os
 import json
 
-method_names = [ "PathTracer", "Guided", "Vcm" ]
+method_names = [ "PathTracer", "Guided", "GuidedKnn", "Vcm" ]
 
 class FigureLayout(FullSizeWithCrops):
     def __init__(self, scene_folder, exposure, crops):
@@ -20,10 +20,13 @@ class FigureLayout(FullSizeWithCrops):
         ]
         render_times = []
         for m in meta_filenames:
-            with open(m) as f: render_times.append(json.load(f)["RenderTime"])
+            with open(m) as f:
+                meta = json.load(f)
+            render_times.append((meta["NumIterations"], meta["RenderTime"]))
 
         for i in range(len(method_names)):
-            method_captions[i + 1] = f"{method_names[i]} ({render_times[i] / 1000:.1f}s)"
+            c = f"{method_names[i]} ({render_times[i][0]}spp after {render_times[i][1] / 1000:.1f}s)"
+            method_captions[i + 1] = c
 
         super().__init__(
             sio.read(os.path.join(scene_folder, "Reference.exr")),
@@ -38,9 +41,34 @@ class FigureLayout(FullSizeWithCrops):
 figure_rows = []
 
 scene_exposures = {
-    "Pool": -2.5,
+    "Pool": -3.0,
     "RoughGlassesIndirect": 2,
-    "HomeOffice": 1
+    "HomeOffice": 1,
+    "LampCaustic": 0.0,
+    "LampCausticNoShade": 0.0,
+}
+
+scene_crops = {
+    "Pool": [
+        Cropbox(top=500, left=530, height=160, width=220, scale=5),
+        Cropbox(top=200, left=1030, height=160, width=220, scale=5)
+    ],
+    "RoughGlasses": [
+        Cropbox(top=700, left=150, height=160, width=220, scale=5),
+        Cropbox(top=500, left=400, height=160, width=220, scale=5)
+    ],
+    "LampCaustic": [
+        Cropbox(top=700, left=150, height=160, width=220, scale=5),
+        Cropbox(top=200, left=650, height=160, width=220, scale=5)
+    ],
+    "LampCausticNoShade": [
+        Cropbox(top=700, left=150, height=160, width=220, scale=5),
+        Cropbox(top=700, left=850, height=160, width=220, scale=5)
+    ],
+    "default": [
+        Cropbox(top=200, left=230, height=160, width=220, scale=5),
+        Cropbox(top=200, left=430, height=160, width=220, scale=5)
+    ]
 }
 
 for dirname in os.listdir("Results"):
@@ -49,10 +77,7 @@ for dirname in os.listdir("Results"):
 
     rows = FigureLayout(
         scene_folder,
-        crops=[
-            Cropbox(top=200, left=230, height=80, width=110, scale=5),
-            Cropbox(top=200, left=430, height=80, width=110, scale=5)
-        ],
+        crops=scene_crops[dirname] if dirname in scene_crops else scene_crops["default"],
         exposure=scene_exposures[dirname] if dirname in scene_exposures else 0,
     ).figure
     figure_rows.extend(rows)

@@ -12,9 +12,9 @@ namespace OpenPGL.NET {
             [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
             public delegate Vector2 PGLSamplerNext2DFunction(IntPtr sampler);
 
-            IntPtr Unused; // Delegates track their containing class for us already
-            [MarshalAs(UnmanagedType.FunctionPtr)] public PGLSamplerNext1DFunction Next1D;
-            [MarshalAs(UnmanagedType.FunctionPtr)] public PGLSamplerNext2DFunction Next2D;
+            public IntPtr UserData;
+            public IntPtr Next1D;
+            public IntPtr Next2D;
         }
     }
 
@@ -26,20 +26,19 @@ namespace OpenPGL.NET {
         public delegate float Next1DFunc();
         public delegate Vector2 Next2DFunc();
 
-        public Next1DFunc Next1D { get; init; }
-        public Next2DFunc Next2D { get; init; }
+        OpenPGL.Sampler.PGLSamplerNext1DFunction next1dDelegate;
+        OpenPGL.Sampler.PGLSamplerNext2DFunction next2dDelegate;
+        OpenPGL.Sampler sampler;
 
         public SamplerWrapper(Next1DFunc next1d, Next2DFunc next2d) {
-            Next1D = next1d;
-            Next2D = next2d;
+            next1dDelegate = _ => next1d();
+            next2dDelegate = _ => next2d();
+            sampler = new() {
+                Next1D = next1d != null ? Marshal.GetFunctionPointerForDelegate(next1d) : IntPtr.Zero,
+                Next2D = next2d != null ? Marshal.GetFunctionPointerForDelegate(next2d) : IntPtr.Zero
+            };
         }
 
-        internal float Next1DDummy(IntPtr _) => Next1D();
-        internal Vector2 Next2DDummy(IntPtr _) => Next2D();
-
-        internal OpenPGL.Sampler ToUnmanaged() => new() {
-            Next1D = Next1DDummy,
-            Next2D = Next2DDummy
-        };
+        internal OpenPGL.Sampler ToUnmanaged() => sampler;
     }
 }

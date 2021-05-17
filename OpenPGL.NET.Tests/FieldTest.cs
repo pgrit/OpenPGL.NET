@@ -4,19 +4,6 @@ using Xunit;
 namespace OpenPGL.NET.Tests {
     public class FieldTest {
         [Fact]
-        public void ShouldNotSegfault() {
-            Field field = new();
-
-            SamplerWrapper sampler = new(
-                () => 1,
-                () => new(1, 1)
-            );
-            var region = field.GetSurfaceRegion(Vector3.Zero, sampler);
-
-            Assert.NotNull(region);
-        }
-
-        [Fact]
         public void RegionShouldBeFound() {
             Field field = new();
 
@@ -38,11 +25,7 @@ namespace OpenPGL.NET.Tests {
             field.Update(samples, 1);
 
             // Check that a valid region is found in the center
-            SamplerWrapper sampler = new(
-                () => (float)rng.NextDouble(),
-                () => new((float)rng.NextDouble(), (float)rng.NextDouble())
-            );
-            var region = field.GetSurfaceRegion(new(0.5f, 0.5f, 0), sampler);
+            var region = field.GetSurfaceRegion(new(0.5f, 0.5f, 0));
 
             Assert.NotNull(region);
             Assert.True(region.IsValid);
@@ -72,11 +55,7 @@ namespace OpenPGL.NET.Tests {
             field.Update(samples, 1);
 
             // Check that a valid region is found in the center
-            SamplerWrapper sampler = new(
-                () => (float)rng.NextDouble(),
-                () => new((float)rng.NextDouble(), (float)rng.NextDouble())
-            );
-            var region = field.GetSurfaceRegion(new(0.5f, 0.5f, 0), sampler);
+            var region = field.GetSurfaceRegion(new(0.5f, 0.5f, 0));
 
             Assert.NotNull(region);
             Assert.True(region.IsValid);

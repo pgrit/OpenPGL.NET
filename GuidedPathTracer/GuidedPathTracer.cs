@@ -14,12 +14,14 @@ namespace GuidedPathTracer {
         SampleStorage sampleStorage;
         ThreadLocal<SurfaceSamplingDistribution> distributionBuffer = new(() => new());
 
+        public SpatialSettings SpatialSettings = new KdTreeSettings() { KnnLookup = true };
+
         public Field GuidingField;
         public bool GuidingEnabled { get; private set; }
 
         protected override void OnPrepareRender() {
             GuidingField = new(new(){
-                SpatialSettings = new KdTreeSettings() { KnnLookup = false }
+                SpatialSettings = SpatialSettings
             });
             GuidingField.SceneBounds = new() {
                 Lower = scene.Bounds.Min - scene.Bounds.Diagonal * 0.01f,
@@ -62,15 +64,15 @@ namespace GuidedPathTracer {
         protected virtual float ComputeGuidingSelectProbability(Vector3 outDir, SurfacePoint hit, PathState state) {
             float roughness = hit.Material.GetRoughness(hit);
             if (roughness < 0.1f) return 0;
+            if (hit.Material.IsTransmissive(hit)) return 0;
             return 0.5f;
         }
 
         protected SurfaceSamplingDistribution GetDistribution(Vector3 outDir, SurfacePoint hit, PathState state) {
             SurfaceSamplingDistribution distribution = null;
+
             if (GuidingEnabled) {
-                // TODO adapt to new interface (primary sample values instead of sampler)
-                SamplerWrapper sampler = new(null, null);
-                Region region = GuidingField.GetSurfaceRegion(hit.Position, sampler);
+                Region region = GuidingField.GetSurfaceRegion(hit.Position);
                 Debug.Assert(region.IsValid);
 
                 distribution = distributionBuffer.Value;
@@ -139,7 +141,7 @@ namespace GuidedPathTracer {
 
             // Material data
             segment.Roughness = hit.Material.GetRoughness(hit);
-            segment.Eta = hit.Material.GetIndexOfRefractionRatio(hit, outDir, inDir);
+            segment.Eta = hit.Material.GetIndexOfRefractionRatio(hit);
 
             return (nextRay, pdf, contrib);
         }
