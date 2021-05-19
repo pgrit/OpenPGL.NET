@@ -141,7 +141,15 @@ namespace GuidedPathTracer {
 
             // Material data
             segment.Roughness = hit.Material.GetRoughness(hit);
-            segment.Eta = hit.Material.GetIndexOfRefractionRatio(hit);
+            if (Vector3.Dot(inDir, -ray.Direction) < 0) {
+                float ior = hit.Material.GetIndexOfRefractionRatio(hit);
+                if (Vector3.Dot(inDir, hit.ShadingNormal) < 0) {
+                    ior = 1 / ior;
+                }
+                segment.Eta = ior;
+            } else {
+                segment.Eta = 1;
+            }
 
             return (nextRay, pdf, contrib);
         }
