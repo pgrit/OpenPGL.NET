@@ -2,11 +2,16 @@
 @using System.IO
 @using SeeSharp.Geometry
 @using TinyEmbree
+
 @if (previewImageData != null) {
     <div class="probe-container" @onclick="UpdateProbePixel" style="width: @(Width)px; height: @(Height)px;">
         <div class="probe-marker" style="left: @(ProbePixelX)px; top: @(ProbePixelY)px;"></div>
         <img class="probe-image" src="data:image/png;base64,@previewImageData"/>
     </div>
+
+    @if (probePoint) {
+        <button @onclick="PickBehind">Pick behind</button>
+    }
 }
 
 @code {
@@ -52,26 +57,34 @@
     protected int ProbePixelX { get; set; }
     protected int ProbePixelY { get; set; }
 
+    SurfacePoint probePoint;
+    Ray probeRay;
+
+    async Task FindPoint() {
+        await Task.Run(() => {
+            probePoint = Scene.Raytracer.Trace(probeRay);
+            if (!probePoint)
+                System.Console.WriteLine("Probe ray left scene!");
+        });
+
+        if (OnClick != null && probePoint)
+            await OnClick(ProbePixelX, ProbePixelY, probeRay, probePoint);
+    }
+
+    async Task PickBehind() {
+        probeRay = Raytracer.SpawnRay(probePoint, probeRay.Direction);
+        await FindPoint();
+    }
+
     protected async Task UpdateProbePixel(MouseEventArgs e) {
         ProbePixelX = (int)e.OffsetX;
         ProbePixelY = (int)e.OffsetY;
 
-        // Compute the correct 3D point
-        SurfacePoint probePoint = new();
-        Ray ray = Scene.Camera.GenerateRay(
+        probeRay = Scene.Camera.GenerateRay(
             new Vector2(ProbePixelX, ProbePixelY),
             new SeeSharp.Sampling.RNG(0)
         ).Ray;
-        await Task.Run(() => {
-            var hit = Scene.Raytracer.Trace(ray);
-            if (!hit) {
-                System.Console.WriteLine("Probe ray left scene!");
-                return;
-            }
-            probePoint = hit;
-        });
 
-        if (OnClick != null)
-            await OnClick(ProbePixelX, ProbePixelY, ray, probePoint);
+        await FindPoint();
     }
 }

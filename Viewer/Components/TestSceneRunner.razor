@@ -26,7 +26,7 @@
 
         <div style="height: 480px;">
             @if (renderResult != null) {
-                <div style="height: 480px; float: left;">
+                <div style="height: 580px; float: left;">
                     <ProbeImage Scene="@(Scene)" PreviewImageBase64="@(renderResult.AsBase64Png())" OnClick="@Query"
                         Width="640" Height="480"
                     />
@@ -34,7 +34,7 @@
             }
 
             @if (regionVisImage != null) {
-                <div style="height: 480px; float: left;">
+                <div style="height: 580px; float: left;">
                     <ProbeImage Scene="@(Scene)" PreviewImageBase64="@(regionVisImage.AsBase64Png())" OnClick="@Query"
                         Width="640" Height="480"
                     />
