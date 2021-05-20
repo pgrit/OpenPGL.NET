@@ -131,9 +131,10 @@ namespace Viewer.Components {
             scene.Camera = new LightProbeCamera(point.Position, normal, point.ErrorOffset, upVector);
             scene.Prepare();
 
-            ClassicBidir integrator = new() {
+            VertexConnectionAndMerging integrator = new() {
                 NumIterations = 1,
-                RenderTechniquePyramid = false
+                RenderTechniquePyramid = false,
+                MaxDepth = Setup.MaxDepth
             };
             integrator.Render(scene);
 

@@ -4,12 +4,11 @@ using System.Numerics;
 using System.Threading;
 using OpenPGL.NET;
 using SeeSharp.Geometry;
-using SeeSharp.Sampling;
 using SimpleImageIO;
 using TinyEmbree;
 
 namespace GuidedPathTracer {
-    public class GuidedPathTracer : PathTracer {
+    public class GuidedPathTracer : PathLenLoggingPathTracer {
         ThreadLocal<PathSegmentStorage> pathStorage = new();
         SampleStorage sampleStorage;
         ThreadLocal<SurfaceSamplingDistribution> distributionBuffer = new(() => new());
@@ -33,6 +32,8 @@ namespace GuidedPathTracer {
             sampleStorage.Reserve((uint)(MaxDepth * numPixels), 0);
 
             GuidingEnabled = false;
+
+            base.OnPrepareRender();
         }
 
         protected override void OnPostIteration(uint iterIdx) {
@@ -86,17 +87,18 @@ namespace GuidedPathTracer {
 
         protected override (Ray, float, RgbColor) SampleDirection(Ray ray, SurfacePoint hit, PathState state) {
             Vector3 outDir = Vector3.Normalize(-ray.Direction);
-            SurfaceSamplingDistribution distribution = GetDistribution(outDir, hit, state);
+            float selectGuideProb = GuidingEnabled ? ComputeGuidingSelectProbability(outDir, hit, state) : 0;
 
-            float selectGuideProb =
-                GuidingEnabled && distribution != null
-                ? ComputeGuidingSelectProbability(outDir, hit, state)
-                : 0;
+            SurfaceSamplingDistribution distribution = null;
+            if (selectGuideProb > 0) {
+                distribution = GetDistribution(outDir, hit, state);
+                Debug.Assert(distribution != null);
+            }
 
             Ray nextRay;
             float guidePdf = 0, bsdfPdf;
             RgbColor contrib;
-            if (distribution != null && state.Rng.NextFloat() < selectGuideProb) { // sample guided
+            if (state.Rng.NextFloat() < selectGuideProb) { // sample guided
                 var sampledDir = distribution.Sample(state.Rng.NextFloat2D());
                 guidePdf = distribution.PDF(sampledDir);
                 guidePdf *= selectGuideProb;
@@ -156,15 +158,12 @@ namespace GuidedPathTracer {
 
         protected override float DirectionPdf(SurfacePoint hit, Vector3 outDir, Vector3 sampledDir,
                                               PathState state) {
-            SurfaceSamplingDistribution distribution = GetDistribution(outDir, hit, state);
+            float selectGuideProb = GuidingEnabled ? ComputeGuidingSelectProbability(outDir, hit, state) : 0;
 
-            float selectGuideProb =
-                GuidingEnabled && distribution != null
-                ? ComputeGuidingSelectProbability(outDir, hit, state)
-                : 0;
-
-            if (!GuidingEnabled || selectGuideProb <= 0 || distribution == null)
+            if (!GuidingEnabled || selectGuideProb <= 0)
                 return base.DirectionPdf(hit, outDir, sampledDir, state);
+
+            SurfaceSamplingDistribution distribution = GetDistribution(outDir, hit, state);
 
             float bsdfPdf = base.DirectionPdf(hit, outDir, sampledDir, state) * (1 - selectGuideProb);
             float guidePdf = distribution.PDF(Vector3.Normalize(sampledDir)) * selectGuideProb;
@@ -199,7 +198,9 @@ namespace GuidedPathTracer {
             segment.DirectContribution = emission;
         }
 
-        protected override void OnFinishedPath(Vector2 pixel, RNG rng, RadianceEstimate estimate) {
+        protected override void OnFinishedPath(RadianceEstimate estimate, PathState state) {
+            base.OnFinishedPath(estimate, state);
+
             if (!pathStorage.IsValueCreated) {
                 return; // The path never hit anything.
             }
