@@ -156,12 +156,8 @@ namespace Viewer.Components {
 
         async Task Query(int col, int row, Ray ray, SurfacePoint point) {
             // Query the guiding cache at the given position
-            var region = integrator.GuidingField.GetSurfaceRegion(point.Position);
-            if (!region.IsValid)
-                Console.WriteLine("Invalid scene region selected.");
-
-            using (SurfaceSamplingDistribution distrib = new()) {
-                distrib.Init(region, point.Position);
+            using (SurfaceSamplingDistribution distrib = new(integrator.GuidingField)) {
+                distrib.Init(point.Position, 0.5f);
                 if (!distrib.IsValid)
                     Console.WriteLine("Invalid distribution.");
 

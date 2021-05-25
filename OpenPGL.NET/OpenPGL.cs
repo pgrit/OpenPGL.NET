@@ -16,7 +16,7 @@ namespace OpenPGL.NET {
 
             // Linking on OS X only works correctly if the file contains the version number.
             if (libraryName == LibName && RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
-                mappedName = $"lib{LibName}.so.0.1.0";
+                mappedName = $"lib{LibName}.so.0.2.0";
             }
 
             return NativeLibrary.Load(mappedName, assembly, dllImportSearchPath);

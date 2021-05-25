@@ -11,7 +11,7 @@ namespace GuidedPathTracer {
     public class GuidedPathTracer : PathLenLoggingPathTracer {
         ThreadLocal<PathSegmentStorage> pathStorage = new();
         SampleStorage sampleStorage;
-        ThreadLocal<SurfaceSamplingDistribution> distributionBuffer = new(() => new());
+        ThreadLocal<SurfaceSamplingDistribution> distributionBuffer;
 
         public SpatialSettings SpatialSettings = new KdTreeSettings() { KnnLookup = true };
 
@@ -31,6 +31,8 @@ namespace GuidedPathTracer {
             int numPixels = scene.FrameBuffer.Width * scene.FrameBuffer.Height;
             sampleStorage.Reserve((uint)(MaxDepth * numPixels), 0);
 
+            distributionBuffer = new(() => new(GuidingField));
+
             GuidingEnabled = false;
 
             base.OnPrepareRender();
@@ -39,7 +41,6 @@ namespace GuidedPathTracer {
         protected override void OnPostIteration(uint iterIdx) {
             GuidingField.Update(sampleStorage, 1);
             sampleStorage.Clear();
-
             GuidingEnabled = true;
         }
 
@@ -73,11 +74,8 @@ namespace GuidedPathTracer {
             SurfaceSamplingDistribution distribution = null;
 
             if (GuidingEnabled) {
-                Region region = GuidingField.GetSurfaceRegion(hit.Position);
-                Debug.Assert(region.IsValid);
-
                 distribution = distributionBuffer.Value;
-                distribution.Init(region, hit.Position, useParallaxCompensation: true);
+                distribution.Init(hit.Position, state.Rng.NextFloat(), useParallaxCompensation: true);
                 distribution.ApplyCosineProduct(hit.ShadingNormal);
 
                 Debug.Assert(distribution.IsValid);

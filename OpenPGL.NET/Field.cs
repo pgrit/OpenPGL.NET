@@ -10,8 +10,7 @@ namespace OpenPGL.NET {
         };
 
         public enum PGL_DIRECTIONAL_DISTRIBUTION_TYPE {
-            PGL_DIRECTIONAL_DISTRIBUTION_VMM = 0,
-            PGL_DIRECTIONAL_DISTRIBUTION_PARALLAX_AWARE_VMM,
+            PGL_DIRECTIONAL_DISTRIBUTION_PARALLAX_AWARE_VMM = 0,
             PGL_DIRECTIONAL_DISTRIBUTION_QUADTREE
         };
 
@@ -70,7 +69,8 @@ namespace OpenPGL.NET {
         };
 
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void pglFieldArgumentsSetDefaults(out PGLFieldArguments arguments);
+        public static extern void pglFieldArgumentsSetDefaults(out PGLFieldArguments arguments,
+            PGL_SPATIAL_STRUCTURE_TYPE spatialType, PGL_DIRECTIONAL_DISTRIBUTION_TYPE directionalType);
 
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr pglNewField(PGLFieldArguments arguments);
@@ -135,7 +135,9 @@ namespace OpenPGL.NET {
 
         internal OpenPGL.PGLFieldArguments MakeArguments() {
             OpenPGL.PGLFieldArguments arguments;
-            OpenPGL.pglFieldArgumentsSetDefaults(out arguments);
+            OpenPGL.pglFieldArgumentsSetDefaults(out arguments,
+                OpenPGL.PGL_SPATIAL_STRUCTURE_TYPE.PGL_SPATIAL_STRUCTURE_KDTREE,
+                OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE.PGL_DIRECTIONAL_DISTRIBUTION_PARALLAX_AWARE_VMM);
 
             SpatialSettings?.SetArguments(ref arguments);
             DirectionalSettings?.SetArguments(ref arguments);
@@ -145,7 +147,7 @@ namespace OpenPGL.NET {
     }
 
     public class Field : IDisposable {
-        IntPtr handle;
+        internal IntPtr Handle;
 
         OpenPGL.Sampler sampler;
         OpenPGL.Sampler.PGLSamplerNext1DFunction next1d;
@@ -154,8 +156,8 @@ namespace OpenPGL.NET {
 
         public Field(FieldSettings settings = new(), int knnSamplerSeed = 42133742) {
             var arguments = settings.MakeArguments();
-            handle = OpenPGL.pglNewField(arguments);
-            Debug.Assert(handle != IntPtr.Zero);
+            Handle = OpenPGL.pglNewField(arguments);
+            Debug.Assert(Handle != IntPtr.Zero);
 
             // We pre-allocate a global sampler for stochastic knn lookups. The disadvantage is that the user
             // has no control over the sampling. But the severe overhead of GetFunctionPointerForDelegate()
@@ -171,26 +173,20 @@ namespace OpenPGL.NET {
         }
 
         public void Dispose() {
-            if (handle != IntPtr.Zero) {
-                OpenPGL.pglReleaseField(handle);
-                handle = IntPtr.Zero;
+            if (Handle != IntPtr.Zero) {
+                OpenPGL.pglReleaseField(Handle);
+                Handle = IntPtr.Zero;
             }
         }
 
         ~Field() => Dispose();
 
-        public uint Iteration => OpenPGL.pglFieldGetIteration(handle);
-        public uint TotalSPP => OpenPGL.pglFieldGetTotalSPP(handle);
-
-        public Region GetSurfaceRegion(Vector3 position)
-        => new(OpenPGL.pglFieldGetSurfaceRegion(handle, position, sampler));
-
-        public Region GetVolumeRegion(Vector3 position)
-        => new(OpenPGL.pglFieldGetVolumeRegion(handle, position, sampler));
+        public uint Iteration => OpenPGL.pglFieldGetIteration(Handle);
+        public uint TotalSPP => OpenPGL.pglFieldGetTotalSPP(Handle);
 
         public void Update(SampleStorage storage, uint numPerPixelSamples)
-        => OpenPGL.pglFieldUpdate(handle, storage.Handle, new(numPerPixelSamples));
+        => OpenPGL.pglFieldUpdate(Handle, storage.Handle, new(numPerPixelSamples));
 
-        public BoundingBox SceneBounds { set => OpenPGL.pglFieldSetSceneBounds(handle, value); }
+        public BoundingBox SceneBounds { set => OpenPGL.pglFieldSetSceneBounds(Handle, value); }
     }
 }

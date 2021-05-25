@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 namespace OpenPGL.NET {
     internal static partial class OpenPGL {
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr pglNewSurfaceSamplingDistribution();
+        public static extern IntPtr pglFieldNewSurfaceSamplingDistribution(IntPtr fieldHandle);
 
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
         public static extern void pglReleaseSurfaceSamplingDistribution(IntPtr handle);
@@ -24,18 +24,23 @@ namespace OpenPGL.NET {
         public static extern void pglSurfaceSamplingDistributionClear(IntPtr handle);
 
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void pglSurfaceSamplingDistributionInit(IntPtr handle, IntPtr regionHandle,
-            Vector3 samplePosition, [MarshalAs(UnmanagedType.I1)] bool useParallaxComp);
+        public static extern void pglFieldInitSurfaceSamplingDistriubtion(IntPtr fieldHandle, IntPtr handle,
+            Vector3 samplePosition, float sample1D, [MarshalAs(UnmanagedType.I1)] bool useParallaxComp);
 
         [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
         public static extern void pglSurfaceSamplingDistributionApplyCosineProduct(IntPtr handle, Vector3 normal);
+
+        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr pglSurfaceSamplingGetRegion(IntPtr handle);
     }
 
     public class SurfaceSamplingDistribution : IDisposable {
         IntPtr handle;
+        Field field;
 
-        public SurfaceSamplingDistribution() {
-            handle = OpenPGL.pglNewSurfaceSamplingDistribution();
+        public SurfaceSamplingDistribution(Field field) {
+            this.field = field;
+            handle = OpenPGL.pglFieldNewSurfaceSamplingDistribution(field.Handle);
         }
 
         public void Dispose() {
@@ -57,11 +62,14 @@ namespace OpenPGL.NET {
 
         public void Clear() => OpenPGL.pglSurfaceSamplingDistributionClear(handle);
 
-        public void Init(Region region, Vector3 pos, bool useParallaxCompensation = true)
-        => OpenPGL.pglSurfaceSamplingDistributionInit(handle, region.Handle, pos, useParallaxCompensation);
+        public void Init(Vector3 pos, float sample1D, bool useParallaxCompensation = true)
+        => OpenPGL.pglFieldInitSurfaceSamplingDistriubtion(field.Handle, handle, pos, sample1D,
+            useParallaxCompensation);
 
         public void ApplyCosineProduct(Vector3 normal)
         => OpenPGL.pglSurfaceSamplingDistributionApplyCosineProduct(handle, normal);
+
+        public Region Region => new(OpenPGL.pglSurfaceSamplingGetRegion(handle));
 
         ~SurfaceSamplingDistribution() => Dispose();
     }
