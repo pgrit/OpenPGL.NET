@@ -1,13 +1,19 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
 using System.Threading;
 using OpenPGL.NET;
 using SeeSharp.Geometry;
+using SeeSharp.Image;
 using SimpleImageIO;
 using TinyEmbree;
 
 namespace GuidedPathTracer {
+    class SingleIterationLayer : RgbLayer {
+        public override void OnStartIteration(int curIteration) => this.curIteration = 1;
+    }
+
     public class GuidedPathTracer : PathLenLoggingPathTracer {
         ThreadLocal<PathSegmentStorage> pathStorage = new();
         SampleStorage sampleStorage;
@@ -17,6 +23,26 @@ namespace GuidedPathTracer {
 
         public Field GuidingField;
         public bool GuidingEnabled { get; private set; }
+
+        /// <summary>
+        /// If set to true, each iteration will be rendered as an individual layer in the .exr called
+        /// "iter0001" etc. Also, the guiding caches of each iteration will be visualized in false color
+        /// images in layers called "caches0001", "caches0002", ...
+        /// </summary>
+        public bool WriteIterationsAsLayers { get; set; }
+
+        List<SingleIterationLayer> iterationRenderings = new();
+        List<SingleIterationLayer> iterationCacheVisualizations = new();
+
+        public override void RegisterSample(Vector2 pixel, RgbColor weight, float misWeight, uint depth,
+                                            bool isNextEvent) {
+            base.RegisterSample(pixel, weight, misWeight, depth, isNextEvent);
+
+            if (WriteIterationsAsLayers) {
+                var render = iterationRenderings[scene.FrameBuffer.CurIteration - 1];
+                render.Splat(pixel.X, pixel.Y, weight * misWeight);
+            }
+        }
 
         protected override void OnPrepareRender() {
             GuidingField = new(new(){
@@ -34,6 +60,16 @@ namespace GuidedPathTracer {
             distributionBuffer = new(() => new(GuidingField));
 
             GuidingEnabled = false;
+
+            // Add additional frame buffer layers
+            if (WriteIterationsAsLayers) {
+                for (int i = 0; i < TotalSpp; ++i) {
+                    iterationRenderings.Add(new());
+                    iterationCacheVisualizations.Add(new());
+                    scene.FrameBuffer.AddLayer($"iter{i:0000}", iterationRenderings[^1]);
+                    scene.FrameBuffer.AddLayer($"caches{i:0000}", iterationCacheVisualizations[^1]);
+                }
+            }
 
             base.OnPrepareRender();
         }
@@ -61,6 +97,23 @@ namespace GuidedPathTracer {
             segment.Position = hit.Position;
             segment.DirectionOut = -Vector3.Normalize(ray.Direction);
             segment.Normal = hit.ShadingNormal;
+
+            if (WriteIterationsAsLayers && state.Depth == 1 && GuidingEnabled) {
+                var distrib = GetDistribution(-ray.Direction, hit, state);
+                if (distrib != null) {
+                    var region = distrib.Region;
+
+                    // Assign a color to this region based on its hash code
+                    int hash = region.GetHashCode();
+                    System.Random colorRng = new(hash);
+                    float hue = (float)colorRng.Next(360);
+                    float saturation = (float)colorRng.NextDouble() * 0.8f + 0.2f;
+
+                    var color = RegionVisualizer.HsvToRgb(hue, saturation, 1.0f);
+                    iterationCacheVisualizations[scene.FrameBuffer.CurIteration - 1]
+                        .Splat(state.Pixel.X, state.Pixel.Y, color);
+                }
+            }
         }
 
         protected virtual float ComputeGuidingSelectProbability(Vector3 outDir, SurfacePoint hit, PathState state) {
