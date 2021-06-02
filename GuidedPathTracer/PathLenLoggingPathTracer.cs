@@ -10,7 +10,7 @@ namespace GuidedPathTracer {
             scene.FrameBuffer.AddLayer("avglen", avgPathLenLayer);
         }
 
-        protected override void OnFinishedPath(RadianceEstimate estimate, PathState state) {
+        protected override void OnFinishedPath(in RadianceEstimate estimate, in PathState state) {
             avgPathLenLayer.Splat(state.Pixel.X, state.Pixel.Y, state.Depth);
         }
     }

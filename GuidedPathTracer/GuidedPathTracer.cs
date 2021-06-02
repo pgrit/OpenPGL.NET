@@ -80,7 +80,7 @@ namespace GuidedPathTracer {
             GuidingEnabled = true;
         }
 
-        protected override void OnStartPath(PathState state) {
+        protected override void OnStartPath(in PathState state) {
             // Reserve memory for the path segments in our thread-local storage
             if (!pathStorage.IsValueCreated)
                 pathStorage.Value = new();
@@ -89,7 +89,7 @@ namespace GuidedPathTracer {
             pathStorage.Value.Clear();
         }
 
-        protected override void OnHit(Ray ray, Hit hit, PathState state) {
+        protected override void OnHit(in Ray ray, in Hit hit, in PathState state) {
             // Prepare the next path segment: set all the info we already have
             var segment = pathStorage.Value.NextSegment();
 
@@ -116,14 +116,14 @@ namespace GuidedPathTracer {
             }
         }
 
-        protected virtual float ComputeGuidingSelectProbability(Vector3 outDir, SurfacePoint hit, PathState state) {
+        protected virtual float ComputeGuidingSelectProbability(Vector3 outDir, in SurfacePoint hit, in PathState state) {
             float roughness = hit.Material.GetRoughness(hit);
             if (roughness < 0.1f) return 0;
             if (hit.Material.IsTransmissive(hit)) return 0;
             return 0.5f;
         }
 
-        protected SurfaceSamplingDistribution GetDistribution(Vector3 outDir, SurfacePoint hit, PathState state) {
+        protected SurfaceSamplingDistribution GetDistribution(Vector3 outDir, in SurfacePoint hit, in PathState state) {
             SurfaceSamplingDistribution distribution = null;
 
             if (GuidingEnabled) {
@@ -136,7 +136,7 @@ namespace GuidedPathTracer {
             return distribution;
         }
 
-        protected override (Ray, float, RgbColor) SampleDirection(Ray ray, SurfacePoint hit, PathState state) {
+        protected override (Ray, float, RgbColor) SampleDirection(in Ray ray, in SurfacePoint hit, in PathState state) {
             Vector3 outDir = Vector3.Normalize(-ray.Direction);
             float selectGuideProb = GuidingEnabled ? ComputeGuidingSelectProbability(outDir, hit, state) : 0;
 
@@ -207,8 +207,8 @@ namespace GuidedPathTracer {
             return (nextRay, pdf, contrib);
         }
 
-        protected override float DirectionPdf(SurfacePoint hit, Vector3 outDir, Vector3 sampledDir,
-                                              PathState state) {
+        protected override float DirectionPdf(in SurfacePoint hit, Vector3 outDir, Vector3 sampledDir,
+                                              in PathState state) {
             float selectGuideProb = GuidingEnabled ? ComputeGuidingSelectProbability(outDir, hit, state) : 0;
 
             if (!GuidingEnabled || selectGuideProb <= 0)
@@ -222,7 +222,7 @@ namespace GuidedPathTracer {
             return bsdfPdf + guidePdf;
         }
 
-        protected override void OnNextEventResult(Ray ray, SurfacePoint point, PathState state,
+        protected override void OnNextEventResult(in Ray ray, in SurfacePoint point, in PathState state,
                                                   float misWeight, RgbColor estimate) {
             var segment = pathStorage.Value.GetSegment(state.Depth - 1);
 
@@ -232,7 +232,7 @@ namespace GuidedPathTracer {
             segment.ScatteredContribution = contrib;
         }
 
-        protected override void OnHitLightResult(Ray ray, PathState state, float misWeight, RgbColor emission,
+        protected override void OnHitLightResult(in Ray ray, in PathState state, float misWeight, RgbColor emission,
                                                  bool isBackground) {
             if (isBackground) {
                 // We need to create the path segment first as there was no actual intersection
@@ -249,7 +249,7 @@ namespace GuidedPathTracer {
             segment.DirectContribution = emission;
         }
 
-        protected override void OnFinishedPath(RadianceEstimate estimate, PathState state) {
+        protected override void OnFinishedPath(in RadianceEstimate estimate, in PathState state) {
             base.OnFinishedPath(estimate, state);
 
             if (!pathStorage.IsValueCreated) {
