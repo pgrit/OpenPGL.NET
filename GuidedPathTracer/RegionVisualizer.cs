@@ -22,7 +22,9 @@ namespace GuidedPathTracer {
 
             // Look up the containing region of the guiding field
             SurfaceSamplingDistribution distribution = new(GuidingField);
-            distribution.Init(new(0.5f, 0.5f, 0), 0.5f);
+            distribution.Init(hit.Position, 0.5f, useParallaxCompensation: true);
+            distribution.ApplyCosineProduct(hit.ShadingNormal);
+
             var region = distribution.Region;
 
             // Assign a color to this region based on its hash code
