@@ -1,25 +1,23 @@
-using System;
 using System.Reflection;
-using System.Runtime.InteropServices;
 
-namespace OpenPGL.NET {
-    internal static partial class OpenPGL {
-        const string LibName = "openpgl";
+namespace OpenPGL.NET;
 
-        static OpenPGL() {
-            NativeLibrary.SetDllImportResolver(typeof(OpenPGL).Assembly, ImportResolver);
+internal static partial class OpenPGL {
+    const string LibName = "openpgl";
+
+    static OpenPGL() {
+        NativeLibrary.SetDllImportResolver(typeof(OpenPGL).Assembly, ImportResolver);
+    }
+
+    private static IntPtr ImportResolver(string libraryName, Assembly assembly,
+                                         DllImportSearchPath? dllImportSearchPath) {
+        string mappedName = libraryName;
+
+        // Linking on OS X only works correctly if the file contains the version number.
+        if (libraryName == LibName && RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
+            mappedName = $"lib{LibName}.so.0.2.0";
         }
 
-        private static IntPtr ImportResolver(string libraryName, Assembly assembly,
-                                             DllImportSearchPath? dllImportSearchPath) {
-            string mappedName = libraryName;
-
-            // Linking on OS X only works correctly if the file contains the version number.
-            if (libraryName == LibName && RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
-                mappedName = $"lib{LibName}.so.0.2.0";
-            }
-
-            return NativeLibrary.Load(mappedName, assembly, dllImportSearchPath);
-        }
+        return NativeLibrary.Load(mappedName, assembly, dllImportSearchPath);
     }
 }

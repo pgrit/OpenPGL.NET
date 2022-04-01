@@ -5,7 +5,7 @@ namespace OpenPGL.NET.Tests {
     public class FieldTest {
         [Fact]
         public void RegionShouldBeFound() {
-            Field field = new();
+            using Field field = new();
 
             // Generate a batch of dummy samples on the xy plane in [0,1]x[0,1]
             uint num = 100000;
@@ -34,7 +34,7 @@ namespace OpenPGL.NET.Tests {
 
         [Fact]
         public void RegionShouldBeFound_NoKnn() {
-            Field field = new(new(){
+            using Field field = new(new() {
                 SpatialSettings = new KdTreeSettings() { KnnLookup = false }
             });
 

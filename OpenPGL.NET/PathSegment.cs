@@ -1,90 +1,99 @@
-using System;
-using System.Numerics;
-using System.Runtime.InteropServices;
+namespace OpenPGL.NET;
 
-namespace OpenPGL.NET {
-    internal static partial class OpenPGL {
-        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void pglPathSegmentSetPosition(IntPtr data, [In] Vector3 position);
+internal static partial class OpenPGL {
+    [StructLayout(LayoutKind.Sequential)]
+    public struct PathSegmentData {
+        public Vector3 Position;
+        public Vector3 DirectionIn;
+        public Vector3 DirectionOut;
+        public Vector3 Normal;
+        [MarshalAs(UnmanagedType.I1)] public bool VolumeScatter;
+        public float PDFDirectionIn;
+        [MarshalAs(UnmanagedType.I1)] public bool IsDelta;
+        public Vector3 ScatteringWeight;
+        public Vector3 TransmittanceWeight;
+        public Vector3 DirectContribution;
+        public float MiWeight;
+        public Vector3 ScatteredContribution;
+        public float RussianRouletteProbability;
+        public float Eta;
+        public float Roughness;
+        public IntPtr Region;
+    }
+}
 
-        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void pglPathSegmentSetNormal(IntPtr data, Vector3 value);
+public unsafe struct PathSegment {
+    private OpenPGL.PathSegmentData* ptr;
 
-        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void pglPathSegmentSetDirectionIn(IntPtr data, Vector3 value);
-
-        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void pglPathSegmentSetPDFDirectionIn(IntPtr data, float value);
-
-        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void pglPathSegmentSetDirectionOut(IntPtr data, Vector3 value);
-
-        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void pglPathSegmentSetVolumeScatter(IntPtr data, [MarshalAs(UnmanagedType.I1)] bool value);
-
-        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void pglPathSegmentSetScatteringWeight(IntPtr data, Vector3 value);
-
-        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void pglPathSegmentSetDirectContribution(IntPtr data, Vector3 value);
-
-        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void pglPathSegmentSetScatteredContribution(IntPtr data, Vector3 value);
-
-        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void pglPathSegmentSetMiWeight(IntPtr data, float value);
-
-        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void pglPathSegmentSetRussianRouletteProbability(IntPtr data, float value);
-
-        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void pglPathSegmentSetEta(IntPtr data, float value);
-
-        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void pglPathSegmentSetIsDelta(IntPtr data, [MarshalAs(UnmanagedType.I1)] bool value);
-
-        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void pglPathSegmentSetRoughness(IntPtr data, float value);
-
-        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void pglPathSegmentSetTransmittanceWeight(IntPtr data, Vector3 value);
-
-        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void pglPathSegmentSetRegion(IntPtr data, IntPtr value);
+    internal PathSegment(IntPtr data) {
+        ptr = (OpenPGL.PathSegmentData*)data.ToPointer();
     }
 
-    public struct PathSegment {
-        internal PathSegment(IntPtr data) {
-            this.data = data;
+    public Vector3 Position {
+        set {
+            ptr->Position = value;
         }
+    }
+    public Vector3 Normal {
+        set {
+            ptr->Normal = value;
+        }
+    }
+    public Vector3 DirectionIn {
+        set {
+            Common.AssertNormalized(value);
+            ptr->DirectionIn = value;
+        }
+    }
+    public float PDFDirectionIn { set { ptr->PDFDirectionIn = value; } }
+    public Vector3 DirectionOut {
+        set {
+            Common.AssertNormalized(value);
+            ptr->DirectionOut = value;
+        }
+    }
+    public bool VolumeScatter { set { ptr->VolumeScatter = value; } }
+    public Vector3 ScatteringWeight {
+        set {
+            ptr->ScatteringWeight = value;
+        }
+    }
+    public Vector3 DirectContribution {
+        set {
+            ptr->DirectContribution = value;
+        }
+    }
+    public Vector3 ScatteredContribution {
+        get => ptr->ScatteredContribution;
+        set => ptr->ScatteredContribution = value;
+    }
+    public float MiWeight { set { ptr->MiWeight = value; } }
+    public float RussianRouletteProbability { set { ptr->RussianRouletteProbability = value; } }
+    public float Eta { set { ptr->Eta = value; } }
+    public bool IsDelta { set { ptr->IsDelta = value; } }
+    public float Roughness { set { ptr->Roughness = value; } }
+    public Vector3 TransmittanceWeight {
+        set {
+            ptr->TransmittanceWeight = value;
+        }
+    }
+    public Region Region { set { ptr->Region = value.Handle; } }
 
-        public Vector3 Position { set { OpenPGL.pglPathSegmentSetPosition(data, value); } }
-        public Vector3 Normal { set { OpenPGL.pglPathSegmentSetNormal(data, value); } }
-        public Vector3 DirectionIn {
-            set {
-                Common.AssertNormalized(value);
-                OpenPGL.pglPathSegmentSetDirectionIn(data, value);
-            }
-        }
-        public float PDFDirectionIn { set { OpenPGL.pglPathSegmentSetPDFDirectionIn(data, value); } }
-        public Vector3 DirectionOut {
-            set {
-                Common.AssertNormalized(value);
-                OpenPGL.pglPathSegmentSetDirectionOut(data, value);
-            }
-        }
-        public bool VolumeScatter { set { OpenPGL.pglPathSegmentSetVolumeScatter(data, value); } }
-        public Vector3 ScatteringWeight { set { OpenPGL.pglPathSegmentSetScatteringWeight(data, value); } }
-        public Vector3 DirectContribution { set { OpenPGL.pglPathSegmentSetDirectContribution(data, value); } }
-        public Vector3 ScatteredContribution { set { OpenPGL.pglPathSegmentSetScatteredContribution(data, value); } }
-        public float MiWeight { set { OpenPGL.pglPathSegmentSetMiWeight(data, value); } }
-        public float RussianRouletteProbability { set { OpenPGL.pglPathSegmentSetRussianRouletteProbability(data, value); } }
-        public float Eta { set { OpenPGL.pglPathSegmentSetEta(data, value); } }
-        public bool IsDelta { set { OpenPGL.pglPathSegmentSetIsDelta(data, value); } }
-        public float Roughness { set { OpenPGL.pglPathSegmentSetRoughness(data, value); } }
-        public Vector3 TransmittanceWeight { set { OpenPGL.pglPathSegmentSetTransmittanceWeight(data, value); } }
-        public Region Region { set { OpenPGL.pglPathSegmentSetRegion(data, value.Handle); } }
-
-        IntPtr data;
+    public void SetDefaults() {
+        Position = Vector3.Zero;
+        Normal = Vector3.UnitZ;
+        DirectionIn = Vector3.UnitZ;
+        DirectionOut = Vector3.UnitZ;
+        PDFDirectionIn = 1;
+        VolumeScatter = false;
+        ScatteringWeight = Vector3.Zero;
+        DirectContribution = Vector3.Zero;
+        ScatteredContribution = Vector3.Zero;
+        MiWeight = 1;
+        RussianRouletteProbability = 1;
+        Eta = 1;
+        IsDelta = false;
+        Roughness = 1;
+        TransmittanceWeight = Vector3.One;
     }
 }

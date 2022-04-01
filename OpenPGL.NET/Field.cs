@@ -1,192 +1,188 @@
-﻿using System;
-using System.Diagnostics;
-using System.Numerics;
-using System.Runtime.InteropServices;
+﻿namespace OpenPGL.NET;
 
-namespace OpenPGL.NET {
-    internal static partial class OpenPGL {
-        public enum PGL_SPATIAL_STRUCTURE_TYPE {
-            PGL_SPATIAL_STRUCTURE_KDTREE = 0
-        };
+internal static partial class OpenPGL {
+    public enum PGL_SPATIAL_STRUCTURE_TYPE {
+        PGL_SPATIAL_STRUCTURE_KDTREE = 0
+    };
 
-        public enum PGL_DIRECTIONAL_DISTRIBUTION_TYPE {
-            PGL_DIRECTIONAL_DISTRIBUTION_PARALLAX_AWARE_VMM = 0,
-            PGL_DIRECTIONAL_DISTRIBUTION_QUADTREE
-        };
-
-        [StructLayout(LayoutKind.Sequential)]
-        public struct PGLFieldArguments {
-            public PGL_SPATIAL_STRUCTURE_TYPE spatialStructureType;
-            public IntPtr spatialSturctureArguments;
-            public PGL_DIRECTIONAL_DISTRIBUTION_TYPE directionalDistributionType;
-            public IntPtr directionalDistributionArguments;
-            // for debugging
-            [MarshalAs(UnmanagedType.I1)] public bool useParallaxCompensation;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        public struct PGLKDTreeArguments
-        {
-            public bool knnLookup;
-            public UIntPtr minSamples;
-            public UIntPtr maxSamples;
-            public UIntPtr maxDepth;
-        };
-
-        [StructLayout(LayoutKind.Sequential)]
-        public struct PGLVMMFactoryArguments
-        {
-            // weighted EM arguments
-            UIntPtr initK;
-
-            UIntPtr maxK;
-            UIntPtr maxEMIterrations;
-
-            float maxKappa;
-            //float maxMeanCosine { KappaToMeanCosine<float>(OPENPGL_MAX_KAPPA)};
-            float convergenceThreshold;
-
-            // MAP prior parameters
-            // weight prior
-            float weightPrior;
-
-            // concentration/meanCosine prior
-            float meanCosinePriorStrength;
-            float meanCosinePrior;
-
-            // adaptive split and merge arguments
-            bool useSplitAndMerge;
-
-            float splittingThreshold;
-            float mergingThreshold;
-
-            bool partialReFit;
-            int maxSplitItr;
-
-            int minSamplesForSplitting;
-            int minSamplesForPartialRefitting;
-            int minSamplesForMerging;
-        };
-
-        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void pglFieldArgumentsSetDefaults(out PGLFieldArguments arguments,
-            PGL_SPATIAL_STRUCTURE_TYPE spatialType, PGL_DIRECTIONAL_DISTRIBUTION_TYPE directionalType);
-
-        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr pglNewField(PGLFieldArguments arguments);
-
-        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void pglReleaseField(IntPtr field);
-
-        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern uint pglFieldGetIteration(IntPtr field);
-
-        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern uint pglFieldGetTotalSPP(IntPtr field);
-
-        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void pglFieldUpdate(IntPtr field, IntPtr sampleStorage, UIntPtr numPerPixelSamples);
-
-        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        // public static extern IntPtr pglFieldGetSurfaceRegion(IntPtr field, Vector3 position, IntPtr sampler);
-        public static extern IntPtr pglFieldGetSurfaceRegion(IntPtr field, Vector3 position, in Sampler sampler);
-
-        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr pglFieldGetVolumeRegion(IntPtr field, Vector3 position, in Sampler sampler);
-
-        [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void pglFieldSetSceneBounds(IntPtr field, BoundingBox bounds);
-    }
+    public enum PGL_DIRECTIONAL_DISTRIBUTION_TYPE {
+        PGL_DIRECTIONAL_DISTRIBUTION_PARALLAX_AWARE_VMM = 0,
+        PGL_DIRECTIONAL_DISTRIBUTION_QUADTREE
+    };
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct BoundingBox {
-        public Vector3 Lower, Upper;
+    public struct PGLFieldArguments {
+        public PGL_SPATIAL_STRUCTURE_TYPE spatialStructureType;
+        public IntPtr spatialSturctureArguments;
+        public PGL_DIRECTIONAL_DISTRIBUTION_TYPE directionalDistributionType;
+        public IntPtr directionalDistributionArguments;
+        // for debugging
+        [MarshalAs(UnmanagedType.I1)] public bool useParallaxCompensation;
     }
 
-    public abstract class SpatialSettings {
-        internal abstract void SetArguments(ref OpenPGL.PGLFieldArguments target);
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public struct PGLKDTreeArguments {
+        [MarshalAs(UnmanagedType.I1)] public bool knnLookup;
+        public UIntPtr minSamples;
+        public UIntPtr maxSamples;
+        public UIntPtr maxDepth;
+    };
+
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public struct PGLVMMFactoryArguments {
+        // weighted EM arguments
+        UIntPtr initK;
+
+        UIntPtr maxK;
+        UIntPtr maxEMIterrations;
+
+        float maxKappa;
+        //float maxMeanCosine { KappaToMeanCosine<float>(OPENPGL_MAX_KAPPA)};
+        float convergenceThreshold;
+
+        // MAP prior parameters
+        // weight prior
+        float weightPrior;
+
+        // concentration/meanCosine prior
+        float meanCosinePriorStrength;
+        float meanCosinePrior;
+
+        // adaptive split and merge arguments
+        [MarshalAs(UnmanagedType.I1)] bool useSplitAndMerge;
+
+        float splittingThreshold;
+        float mergingThreshold;
+
+        [MarshalAs(UnmanagedType.I1)] bool partialReFit;
+        int maxSplitItr;
+
+        int minSamplesForSplitting;
+        int minSamplesForPartialRefitting;
+        int minSamplesForMerging;
+    };
+
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void pglFieldArgumentsSetDefaults(out PGLFieldArguments arguments,
+        PGL_SPATIAL_STRUCTURE_TYPE spatialType, PGL_DIRECTIONAL_DISTRIBUTION_TYPE directionalType);
+
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern IntPtr pglDeviceNewField(IntPtr device, PGLFieldArguments arguments);
+
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void pglReleaseField(IntPtr device, IntPtr field);
+
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern uint pglFieldGetIteration(IntPtr field);
+
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern uint pglFieldGetTotalSPP(IntPtr field);
+
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void pglFieldUpdate(IntPtr field, IntPtr sampleStorage, UIntPtr numPerPixelSamples);
+
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    // public static extern IntPtr pglFieldGetSurfaceRegion(IntPtr field, Vector3 position, IntPtr sampler);
+    public static extern IntPtr pglFieldGetSurfaceRegion(IntPtr field, Vector3 position, in Sampler sampler);
+
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern IntPtr pglFieldGetVolumeRegion(IntPtr field, Vector3 position, in Sampler sampler);
+
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void pglFieldSetSceneBounds(IntPtr field, BoundingBox bounds);
+}
+
+[StructLayout(LayoutKind.Sequential)]
+public struct BoundingBox {
+    public Vector3 Lower, Upper;
+}
+
+public abstract class SpatialSettings {
+    internal abstract void SetArguments(ref OpenPGL.PGLFieldArguments target);
+}
+
+public abstract class DirectionalSettings {
+    internal abstract void SetArguments(ref OpenPGL.PGLFieldArguments target);
+}
+
+public class KdTreeSettings : SpatialSettings {
+    public bool KnnLookup = true;
+    public uint MinSamples = 100;
+    public uint MaxSamples = 32000;
+    public uint MaxDepth = 32;
+
+    internal override void SetArguments(ref OpenPGL.PGLFieldArguments target) {
+        target.spatialStructureType = OpenPGL.PGL_SPATIAL_STRUCTURE_TYPE.PGL_SPATIAL_STRUCTURE_KDTREE;
+        OpenPGL.PGLKDTreeArguments args = new() {
+            knnLookup = KnnLookup,
+            minSamples = new(MinSamples),
+            maxSamples = new(MaxSamples),
+            maxDepth = new(MaxDepth)
+        };
+        Marshal.StructureToPtr<OpenPGL.PGLKDTreeArguments>(args, target.spatialSturctureArguments, true);
+    }
+}
+
+public struct FieldSettings {
+    public SpatialSettings SpatialSettings { get; init; }
+    public DirectionalSettings DirectionalSettings { get; init; }
+
+    internal OpenPGL.PGLFieldArguments MakeArguments() {
+        OpenPGL.PGLFieldArguments arguments;
+        OpenPGL.pglFieldArgumentsSetDefaults(out arguments,
+            OpenPGL.PGL_SPATIAL_STRUCTURE_TYPE.PGL_SPATIAL_STRUCTURE_KDTREE,
+            OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE.PGL_DIRECTIONAL_DISTRIBUTION_PARALLAX_AWARE_VMM);
+
+        SpatialSettings?.SetArguments(ref arguments);
+        DirectionalSettings?.SetArguments(ref arguments);
+
+        return arguments;
+    }
+}
+
+public class Field : IDisposable {
+    internal IntPtr Handle;
+
+    OpenPGL.Sampler sampler;
+    OpenPGL.Sampler.PGLSamplerNext1DFunction next1d;
+    OpenPGL.Sampler.PGLSamplerNext2DFunction next2d;
+    Random rng;
+    Device device;
+
+    public Field(FieldSettings settings = new(), int knnSamplerSeed = 42133742) {
+        device = new();
+        var arguments = settings.MakeArguments();
+        Handle = OpenPGL.pglDeviceNewField(device.Ptr, arguments);
+        Debug.Assert(Handle != IntPtr.Zero);
+
+        // We pre-allocate a global sampler for stochastic knn lookups. The disadvantage is that the user
+        // has no control over the sampling. But the severe overhead of GetFunctionPointerForDelegate()
+        // is avoided. An alternative would be to put the burden on the user to pre-allocate a delegate
+        // and feed it with the correct information via the IntPtr sized user data.
+        rng = new(knnSamplerSeed);
+        next1d = _ => { lock (rng) return (float)rng.NextDouble(); };
+        next2d = _ => { lock (rng) return new((float)rng.NextDouble(), (float)rng.NextDouble()); };
+        sampler = new() {
+            Next1D = Marshal.GetFunctionPointerForDelegate(next1d),
+            Next2D = Marshal.GetFunctionPointerForDelegate(next2d)
+        };
     }
 
-    public abstract class DirectionalSettings {
-        internal abstract void SetArguments(ref OpenPGL.PGLFieldArguments target);
-    }
-
-    public class KdTreeSettings : SpatialSettings {
-        public bool KnnLookup = true;
-        public uint MinSamples = 100;
-        public uint MaxSamples = 32000;
-        public uint MaxDepth = 32;
-
-        internal override void SetArguments(ref OpenPGL.PGLFieldArguments target) {
-            target.spatialStructureType = OpenPGL.PGL_SPATIAL_STRUCTURE_TYPE.PGL_SPATIAL_STRUCTURE_KDTREE;
-            OpenPGL.PGLKDTreeArguments args = new() {
-                knnLookup = KnnLookup,
-                minSamples = new(MinSamples),
-                maxSamples = new(MaxSamples),
-                maxDepth = new(MaxDepth)
-            };
-            Marshal.StructureToPtr<OpenPGL.PGLKDTreeArguments>(args, target.spatialSturctureArguments, true);
+    public void Dispose() {
+        if (Handle != IntPtr.Zero) {
+            OpenPGL.pglReleaseField(device.Ptr, Handle);
+            Handle = IntPtr.Zero;
+            device.Dispose();
         }
     }
 
-    public struct FieldSettings {
-        public SpatialSettings SpatialSettings { get; init; }
-        public DirectionalSettings DirectionalSettings { get; init; }
+    ~Field() => Dispose();
 
-        internal OpenPGL.PGLFieldArguments MakeArguments() {
-            OpenPGL.PGLFieldArguments arguments;
-            OpenPGL.pglFieldArgumentsSetDefaults(out arguments,
-                OpenPGL.PGL_SPATIAL_STRUCTURE_TYPE.PGL_SPATIAL_STRUCTURE_KDTREE,
-                OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE.PGL_DIRECTIONAL_DISTRIBUTION_PARALLAX_AWARE_VMM);
+    public uint Iteration => OpenPGL.pglFieldGetIteration(Handle);
+    public uint TotalSPP => OpenPGL.pglFieldGetTotalSPP(Handle);
 
-            SpatialSettings?.SetArguments(ref arguments);
-            DirectionalSettings?.SetArguments(ref arguments);
+    public void Update(SampleStorage storage, uint numPerPixelSamples)
+    => OpenPGL.pglFieldUpdate(Handle, storage.Handle, new(numPerPixelSamples));
 
-            return arguments;
-        }
-    }
-
-    public class Field : IDisposable {
-        internal IntPtr Handle;
-
-        OpenPGL.Sampler sampler;
-        OpenPGL.Sampler.PGLSamplerNext1DFunction next1d;
-        OpenPGL.Sampler.PGLSamplerNext2DFunction next2d;
-        Random rng;
-
-        public Field(FieldSettings settings = new(), int knnSamplerSeed = 42133742) {
-            var arguments = settings.MakeArguments();
-            Handle = OpenPGL.pglNewField(arguments);
-            Debug.Assert(Handle != IntPtr.Zero);
-
-            // We pre-allocate a global sampler for stochastic knn lookups. The disadvantage is that the user
-            // has no control over the sampling. But the severe overhead of GetFunctionPointerForDelegate()
-            // is avoided. An alternative would be to put the burden on the user to pre-allocate a delegate
-            // and feed it with the correct information via the IntPtr sized user data.
-            rng = new(knnSamplerSeed);
-            next1d = _ => { lock (rng) return (float)rng.NextDouble(); };
-            next2d = _ => { lock (rng) return new((float)rng.NextDouble(), (float)rng.NextDouble()); };
-            sampler = new() {
-                Next1D = Marshal.GetFunctionPointerForDelegate(next1d),
-                Next2D = Marshal.GetFunctionPointerForDelegate(next2d)
-            };
-        }
-
-        public void Dispose() {
-            if (Handle != IntPtr.Zero) {
-                OpenPGL.pglReleaseField(Handle);
-                Handle = IntPtr.Zero;
-            }
-        }
-
-        ~Field() => Dispose();
-
-        public uint Iteration => OpenPGL.pglFieldGetIteration(Handle);
-        public uint TotalSPP => OpenPGL.pglFieldGetTotalSPP(Handle);
-
-        public void Update(SampleStorage storage, uint numPerPixelSamples)
-        => OpenPGL.pglFieldUpdate(Handle, storage.Handle, new(numPerPixelSamples));
-
-        public BoundingBox SceneBounds { set => OpenPGL.pglFieldSetSceneBounds(Handle, value); }
-    }
+    public BoundingBox SceneBounds { set => OpenPGL.pglFieldSetSceneBounds(Handle, value); }
 }

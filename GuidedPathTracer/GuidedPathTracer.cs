@@ -186,7 +186,7 @@ namespace GuidedPathTracer {
             }
 
             // Update the incident direction and PDF in the current path segment
-            var segment = pathStorage.Value.GetSegment(state.Depth - 1);
+            var segment = pathStorage.Value.LastSegment;
             var inDir = Vector3.Normalize(nextRay.Direction);
             segment.DirectionIn = inDir;
             segment.PDFDirectionIn = pdf;
@@ -224,12 +224,10 @@ namespace GuidedPathTracer {
 
         protected override void OnNextEventResult(in Ray ray, in SurfacePoint point, in PathState state,
                                                   float misWeight, RgbColor estimate) {
-            var segment = pathStorage.Value.GetSegment(state.Depth - 1);
+            var segment = pathStorage.Value.LastSegment;
 
             var contrib = misWeight * estimate;
-            // TODO this assumes that we have a single shadow ray. Should be += instead, which requires
-            //      that the PGL API supports a getter for this value
-            segment.ScatteredContribution = contrib;
+            segment.ScatteredContribution += (Vector3)contrib;
         }
 
         protected override void OnHitLightResult(in Ray ray, in PathState state, float misWeight, RgbColor emission,
@@ -243,8 +241,7 @@ namespace GuidedPathTracer {
                 newSegment.Position = ray.Origin + ray.Direction * scene.Radius * 1337;
             }
 
-            var segment = pathStorage.Value.GetSegment(state.Depth - 1);
-
+            var segment = pathStorage.Value.LastSegment;
             segment.MiWeight = misWeight;
             segment.DirectContribution = emission;
         }
@@ -263,7 +260,8 @@ namespace GuidedPathTracer {
                 sampler: sampler,
                 splatSamples: false,
                 useNEEMiWeights: false,
-                guideDirectLight: false);
+                guideDirectLight: true,
+                rrAffectsDirectContribution: true);
             sampleStorage.AddSamples(pathStorage.Value.SamplesRawPointer, num);
         }
     }

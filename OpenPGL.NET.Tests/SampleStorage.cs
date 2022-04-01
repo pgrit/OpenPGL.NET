@@ -40,6 +40,10 @@ namespace OpenPGL.NET.Tests {
             segment.DirectionOut = Vector3.UnitZ;
             segment.ScatteredContribution = new(0, 0, 0);
             segment.ScatteringWeight = new(1, 1, 1);
+            segment.PDFDirectionIn = 1;
+            segment.Roughness = 1;
+            segment.RussianRouletteProbability = 1;
+            segment.Eta = 4;
 
             // Light vertex
             segment = storage.NextSegment();
@@ -51,7 +55,7 @@ namespace OpenPGL.NET.Tests {
                 () => (float)rng.NextDouble(),
                 () => new((float)rng.NextDouble(), (float)rng.NextDouble())
             );
-            uint num = storage.PrepareSamples(false, sampler, true, true);
+            uint num = storage.PrepareSamples(false, sampler, true, true, true);
 
             Assert.Equal(1u, num);
             Assert.Equal(1, storage.Samples.Length);
@@ -93,10 +97,12 @@ namespace OpenPGL.NET.Tests {
             segment.DirectionOut = Vector3.UnitZ;
             segment.ScatteredContribution = new(0, 0, 0);
             segment.ScatteringWeight = new(1, 1, 1);
+            segment.TransmittanceWeight = Vector3.One;
 
             // Light vertex
             segment = storage.NextSegment();
             segment.Position = new(0, 0, 5);
+            segment.Normal = new(0, 0, -1);
             segment.DirectContribution = new(10, 10, 10);
 
             System.Random rng = new(1337);
@@ -104,7 +110,7 @@ namespace OpenPGL.NET.Tests {
                 () => (float)rng.NextDouble(),
                 () => new((float)rng.NextDouble(), (float)rng.NextDouble())
             );
-            uint num = storage.PrepareSamples(false, sampler, true, true);
+            uint num = storage.PrepareSamples(false, sampler, true, true, true);
 
             Assert.Equal(1u, num);
             Assert.Equal(1, storage.Samples.Length);
@@ -179,18 +185,18 @@ namespace OpenPGL.NET.Tests {
             segment.ScatteredContribution = new(10, 10, 10);
             segment.ScatteringWeight = new(1, 1, 1);
 
+            PathSegment segmentGet = storage.LastSegment;
+            segmentGet.Position = new(0, 1, 0);
+
             PathSegment segment3 = storage.NextSegment();
             segment3.Position = new(0, 0, 0);
-
-            PathSegment segmentGet = storage[1];
-            segmentGet.Position = new(0, 1, 0);
 
             System.Random rng = new(1337);
             SamplerWrapper sampler = new(
                 () => (float)rng.NextDouble(),
                 () => new((float)rng.NextDouble(), (float)rng.NextDouble())
             );
-            uint num = storage.PrepareSamples(false, sampler, true, true);
+            uint num = storage.PrepareSamples(false, sampler, true, true, true);
 
             Assert.Equal(1u, num);
             Assert.Equal(1, storage.Samples.Length);

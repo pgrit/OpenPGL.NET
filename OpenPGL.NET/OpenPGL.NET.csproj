@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
@@ -31,6 +31,11 @@
       Pack="true"
       PackagePath="runtimes/win-x64/native/"
       Condition="Exists('../Runtimes/tbb.dll')"/>
+    <Content CopyToOutputDirectory="PreserveNewest"
+      Include="../Runtimes/tbb12.dll"
+      Pack="true"
+      PackagePath="runtimes/win-x64/native/"
+      Condition="Exists('../Runtimes/tbb12.dll')"/>
   </ItemGroup>
 
 </Project>

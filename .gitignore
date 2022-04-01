@@ -1,11 +1,13 @@
 # generated build files
 obj
 bin
+/Runtimes/*
 
 # IDE generated / user-specific
 *.csproj.user
 /.vs
 launchSettings.json
+/.idea/*
 
 # rendering results
 /*/Results/*
