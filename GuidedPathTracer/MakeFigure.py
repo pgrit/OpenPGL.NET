@@ -5,7 +5,7 @@ from figuregen.util.image import Cropbox, lin_to_srgb, exposure
 import os
 import json
 
-method_names = [ "PathTracer", "Guided", "GuidedKnn", "Vcm" ]
+method_names = [ "PathTracer", "Guided" ] #, "GuidedKnn", "Vcm" ]
 
 class FigureLayout(FullSizeWithCrops):
     def __init__(self, scene_folder, exposure, crops):
@@ -40,6 +40,8 @@ class FigureLayout(FullSizeWithCrops):
 
 figure_rows = []
 
+scene_filter = ["HomeOffice", "ModernLivingRoom", "Pool"]
+
 scene_exposures = {
     "Pool": -3.0,
     "RoughGlassesIndirect": 2,
@@ -49,31 +51,32 @@ scene_exposures = {
 }
 
 scene_crops = {
-    "Pool": [
-        Cropbox(top=500, left=530, height=160, width=220, scale=5),
-        Cropbox(top=200, left=1030, height=160, width=220, scale=5)
-    ],
-    "RoughGlasses": [
-        Cropbox(top=700, left=150, height=160, width=220, scale=5),
-        Cropbox(top=500, left=400, height=160, width=220, scale=5)
-    ],
-    "LampCaustic": [
-        Cropbox(top=700, left=150, height=160, width=220, scale=5),
-        Cropbox(top=200, left=650, height=160, width=220, scale=5)
-    ],
-    "LampCausticNoShade": [
-        Cropbox(top=700, left=150, height=160, width=220, scale=5),
-        Cropbox(top=700, left=850, height=160, width=220, scale=5)
-    ],
+    # "Pool": [
+    #     Cropbox(top=500, left=530, height=160, width=220, scale=5),
+    #     Cropbox(top=200, left=1030, height=160, width=220, scale=5)
+    # ],
+    # "RoughGlasses": [
+    #     Cropbox(top=700, left=150, height=160, width=220, scale=5),
+    #     Cropbox(top=500, left=400, height=160, width=220, scale=5)
+    # ],
+    # "LampCaustic": [
+    #     Cropbox(top=700, left=150, height=160, width=220, scale=5),
+    #     Cropbox(top=200, left=650, height=160, width=220, scale=5)
+    # ],
+    # "LampCausticNoShade": [
+    #     Cropbox(top=700, left=150, height=160, width=220, scale=5),
+    #     Cropbox(top=700, left=850, height=160, width=220, scale=5)
+    # ],
     "default": [
-        Cropbox(top=200, left=230, height=160, width=220, scale=5),
-        Cropbox(top=200, left=430, height=160, width=220, scale=5)
+        Cropbox(top=(int)(0.5*200), left=(int)(0.5*230), height=(int)(0.5*160), width=(int)(0.5*220), scale=5),
+        Cropbox(top=(int)(0.5*200), left=(int)(0.5*430), height=(int)(0.5*160), width=(int)(0.5*220), scale=5)
     ]
 }
 
 for dirname in os.listdir("Results"):
     scene_folder = os.path.join("Results", dirname)
     if not os.path.isdir(scene_folder): continue
+    if scene_filter is not None and dirname not in scene_filter: continue
 
     rows = FigureLayout(
         scene_folder,

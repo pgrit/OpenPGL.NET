@@ -78,7 +78,7 @@ namespace Viewer.Components {
             SetupChangedCallback?.Invoke();
 
             await Task.Run(() => {
-                var sceneLoader = new SceneFromFile(Setup.ScenePath, Setup.MaxDepth);
+                var sceneLoader = new SceneFromFile(Setup.ScenePath, 0, Setup.MaxDepth);
                 Scene = sceneLoader.MakeScene();
                 Scene.FrameBuffer = new(640, 480, "");
                 Scene.Prepare();
@@ -158,9 +158,6 @@ namespace Viewer.Components {
             // Query the guiding cache at the given position
             using (SurfaceSamplingDistribution distrib = new(integrator.GuidingField)) {
                 distrib.Init(point.Position, 0.5f);
-                if (!distrib.IsValid)
-                    Console.WriteLine("Invalid distribution.");
-
                 await Task.Run(() => distributionImage = MakeDistributionImage(distrib, resolution));
             }
 

@@ -14,10 +14,6 @@ internal static partial class OpenPGL {
     public static extern float pglSurfaceSamplingDistributionPDF(IntPtr handle, Vector3 direction);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    [return: MarshalAs(UnmanagedType.I1)]
-    public static extern bool pglSurfaceSamplingDistributionIsValid(IntPtr handle);
-
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     public static extern void pglSurfaceSamplingDistributionClear(IntPtr handle);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
@@ -54,8 +50,6 @@ public class SurfaceSamplingDistribution : IDisposable {
         Common.AssertNormalized(direction);
         return OpenPGL.pglSurfaceSamplingDistributionPDF(handle, direction);
     }
-
-    public bool IsValid => OpenPGL.pglSurfaceSamplingDistributionIsValid(handle);
 
     public void Clear() => OpenPGL.pglSurfaceSamplingDistributionClear(handle);
 

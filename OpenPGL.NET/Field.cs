@@ -7,7 +7,8 @@ internal static partial class OpenPGL {
 
     public enum PGL_DIRECTIONAL_DISTRIBUTION_TYPE {
         PGL_DIRECTIONAL_DISTRIBUTION_PARALLAX_AWARE_VMM = 0,
-        PGL_DIRECTIONAL_DISTRIBUTION_QUADTREE
+        PGL_DIRECTIONAL_DISTRIBUTION_QUADTREE,
+        PGL_DIRECTIONAL_DISTRIBUTION_VMM
     };
 
     [StructLayout(LayoutKind.Sequential)]
@@ -20,7 +21,7 @@ internal static partial class OpenPGL {
         [MarshalAs(UnmanagedType.I1)] public bool useParallaxCompensation;
     }
 
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    [StructLayout(LayoutKind.Sequential)]
     public struct PGLKDTreeArguments {
         [MarshalAs(UnmanagedType.I1)] public bool knnLookup;
         public UIntPtr minSamples;
@@ -28,10 +29,11 @@ internal static partial class OpenPGL {
         public UIntPtr maxDepth;
     };
 
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    [StructLayout(LayoutKind.Sequential)]
     public struct PGLVMMFactoryArguments {
         // weighted EM arguments
         UIntPtr initK;
+        float initKappa;
 
         UIntPtr maxK;
         UIntPtr maxEMIterrations;
@@ -60,7 +62,28 @@ internal static partial class OpenPGL {
         int minSamplesForSplitting;
         int minSamplesForPartialRefitting;
         int minSamplesForMerging;
+        [MarshalAs(UnmanagedType.I1)] bool parallaxCompensation;
     };
+
+    enum PGLDQTLeafEstimator {
+        REJECTION_SAMPLING = 0,
+        PER_LEAF
+    };
+
+    enum PGLDQTSplitMetric {
+        MEAN = 0,
+        SECOND_MOMENT
+    };
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct PGLDQTFactoryArguments {
+        PGLDQTLeafEstimator leafEstimator;
+        PGLDQTSplitMetric splitMetric;
+        float splitThreshold;
+        float footprintFactor;
+        UInt32 maxLevels;
+    };
+
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     public static extern void pglFieldArgumentsSetDefaults(out PGLFieldArguments arguments,

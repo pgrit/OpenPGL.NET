@@ -72,7 +72,8 @@ namespace Viewer.Components {
                     pitch * MathF.PI / 180.0f, 0);
                 Scene.Camera.WorldToCamera = Scene.Camera.WorldToCamera * rot;
 
-                Scene.FrameBuffer.Reset();
+                Scene.FrameBuffer = new(640, 480, "");
+                Scene.Prepare();
                 vis.Render(Scene);
                 previewImageData = Scene.FrameBuffer.Image.AsBase64Png();
 

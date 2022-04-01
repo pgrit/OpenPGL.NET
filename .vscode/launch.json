@@ -23,7 +23,10 @@
             "cwd": "${workspaceFolder}/GuidedPathTracer",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "internalConsole",
-            "stopAtEntry": false
+            "stopAtEntry": false,
+            "logging": {
+                "moduleLoad": false
+            }
         },
         {
             // Use IntelliSense to find out which attributes exist for C# debugging
@@ -39,7 +42,10 @@
             "cwd": "${workspaceFolder}/Benchmark",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "internalConsole",
-            "stopAtEntry": false
+            "stopAtEntry": false,
+            "logging": {
+                "moduleLoad": false
+            }
         },
         {
             // Use IntelliSense to find out which attributes exist for C# debugging
@@ -55,7 +61,10 @@
             "cwd": "${workspaceFolder}/Viewer",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "internalConsole",
-            "stopAtEntry": false
+            "stopAtEntry": false,
+            "logging": {
+                "moduleLoad": false
+            }
         },
         {
             "name": ".NET Core Attach",

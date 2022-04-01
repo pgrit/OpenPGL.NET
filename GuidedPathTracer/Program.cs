@@ -1,36 +1,22 @@
 ﻿using System.Diagnostics;
 using SeeSharp.Experiments;
 
-namespace GuidedPathTracer {
-    class Program {
-        static Process ShortTest() {
-            SceneRegistry.AddSource("../Scenes");
-            Benchmark benchmark = new(new Experiment(16), new() {
-                // SceneRegistry.LoadScene("HomeOffice"),
-                // SceneRegistry.LoadScene("RoughGlassesIndirect", maxDepth: 10),
-                SceneRegistry.LoadScene("RoughGlasses", maxDepth: 10),
+SceneRegistry.AddSource("../../GuidingExperiments/Scenes");
+Benchmark benchmark = new(new GuidedPathTracer.Experiment(int.MaxValue, 10000), new() {
+    // SceneRegistry.LoadScene("HomeOffice"),
+    // SceneRegistry.LoadScene("RoughGlassesIndirect", maxDepth: 10),
+    SceneRegistry.LoadScene("RoughGlasses", maxDepth: 10),
+    // SceneRegistry.LoadScene("LampCaustic", maxDepth: 10),
+    // SceneRegistry.LoadScene("TargetPractice"),
+    // SceneRegistry.LoadScene("ModernHall"),
+    // SceneRegistry.LoadScene("CountryKitchen"),
+    // SceneRegistry.LoadScene("ModernLivingRoom", maxDepth: 10),
+    // SceneRegistry.LoadScene("Pool", maxDepth: 10),
+}, "Results", 640, 480, SeeSharp.Image.FrameBuffer.Flags.SendToTev);
+benchmark.Run(skipReference: false);
 
-                // SceneRegistry.LoadScene("LampCaustic", maxDepth: 10),
-                // SceneRegistry.LoadScene("LampCausticNoShade", maxDepth: 10),
-
-                // SceneRegistry.LoadScene("TargetPractice"),
-                // SceneRegistry.LoadScene("LivingRoom", maxDepth: 5),
-                // SceneRegistry.LoadScene("IndirectRoom", maxDepth: 5),
-
-                // SceneRegistry.LoadScene("CornellBox", maxDepth: 5),
-                // SceneRegistry.LoadScene("Pool", maxDepth: 10),
-            }, "Results", 1280, 960, SeeSharp.Image.FrameBuffer.Flags.SendToTev);
-            benchmark.Run(skipReference: true);
-
-            try {
-                return Process.Start("python", "./MakeFigure.py Results");
-            } catch {
-                return Process.Start("python3", "./MakeFigure.py Results");
-            }
-        }
-
-        static void Main(string[] args) {
-            ShortTest().WaitForExit();
-        }
-    }
+try {
+    Process.Start("python", "./MakeFigure.py Results");
+} catch {
+    Process.Start("python3", "./MakeFigure.py Results");
 }
