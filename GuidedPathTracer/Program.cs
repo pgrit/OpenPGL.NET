@@ -2,7 +2,7 @@
 using SeeSharp.Experiments;
 
 SceneRegistry.AddSource("../../GuidingExperiments/Scenes");
-Benchmark benchmark = new(new GuidedPathTracer.Experiment(int.MaxValue, 10000), new() {
+Benchmark benchmark = new(new GuidedPathTracer.Experiment(128, int.MaxValue), new() {
     // SceneRegistry.LoadScene("HomeOffice"),
     // SceneRegistry.LoadScene("RoughGlassesIndirect", maxDepth: 10),
     SceneRegistry.LoadScene("RoughGlasses", maxDepth: 10),
@@ -14,9 +14,3 @@ Benchmark benchmark = new(new GuidedPathTracer.Experiment(int.MaxValue, 10000), 
     // SceneRegistry.LoadScene("Pool", maxDepth: 10),
 }, "Results", 640, 480, SeeSharp.Image.FrameBuffer.Flags.SendToTev);
 benchmark.Run(skipReference: false);
-
-try {
-    Process.Start("python", "./MakeFigure.py Results");
-} catch {
-    Process.Start("python3", "./MakeFigure.py Results");
-}

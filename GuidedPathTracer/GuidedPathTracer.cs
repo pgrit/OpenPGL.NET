@@ -259,7 +259,7 @@ public class GuidedPathTracer : PathLenLoggingPathTracer {
             sampler: sampler,
             splatSamples: false,
             useNEEMiWeights: false,
-            guideDirectLight: true,
+            guideDirectLight: false,
             rrAffectsDirectContribution: true);
         sampleStorage.AddSamples(pathStorage.Value.SamplesRawPointer, num);
     }

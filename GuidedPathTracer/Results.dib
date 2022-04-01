@@ -1,0 +1,40 @@
+#!fsharp
+
+// Image viewer
+#r "../../imageLab/ImageLab.Flip/bin/Release/net6.0/ImageLab.Flip.dll"
+#r "../../imageLab/ImageLab.Flip/bin/Release/net6.0/ImageLab.GUI.dll"
+#r "nuget: SimpleImageIO"
+open ImageLab.Flip;
+HTML(Flip.MakeHeader()).Display() |> ignore
+
+#!markdown
+
+# Equal sample comparison: path guiding vs vanilla VCM
+
+#!markdown
+
+### Render times in seconds for 128spp
+
+#!fsharp
+
+let renderTime method =
+    let json = System.IO.File.ReadAllText($"Results/RoughGlasses/{method}/Render.json")
+    let doc = System.Text.Json.JsonDocument.Parse(json)
+    doc.RootElement.GetProperty("RenderTime").GetDouble()
+Map [
+    ("Path tracing", 0.001 * renderTime "PathTracer")
+    ("Guided", 0.001 * renderTime "Guided")
+    ("VCM", 0.001 * renderTime "VCM")
+]
+
+#!markdown
+
+### Rendered images
+
+#!fsharp
+
+HTML(Flip.Make[|
+    struct ("Path tracing", "Results/RoughGlasses/PathTracer/Render.exr")
+    struct ("Guided", "Results/RoughGlasses/Guided/Render.exr")
+    struct ("VCM", "Results/RoughGlasses/VCM/Render.exr")
+|])
