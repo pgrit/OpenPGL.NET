@@ -1,7 +1,8 @@
 # generated build files
 obj
 bin
-/Runtimes/*
+/runtimes/*
+/prebuilt/*
 
 # IDE generated / user-specific
 *.csproj.user

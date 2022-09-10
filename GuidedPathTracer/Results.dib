@@ -1,11 +1,9 @@
 #!fsharp
 
-// Image viewer
-#r "../../imageLab/ImageLab.Flip/bin/Release/net6.0/ImageLab.Flip.dll"
-#r "../../imageLab/ImageLab.Flip/bin/Release/net6.0/ImageLab.GUI.dll"
 #r "nuget: SimpleImageIO"
-open ImageLab.Flip;
-HTML(Flip.MakeHeader()).Display() |> ignore
+open SimpleImageIO
+open SimpleImageIO.FlipBook
+HTML(FlipBook.MakeHeader()).Display() |> ignore
 
 #!markdown
 
@@ -18,7 +16,7 @@ HTML(Flip.MakeHeader()).Display() |> ignore
 #!fsharp
 
 let renderTime method =
-    let json = System.IO.File.ReadAllText($"Results/RoughGlasses/{method}/Render.json")
+    let json = System.IO.File.ReadAllText($"Results/CornellBox/{method}/Render.json")
     let doc = System.Text.Json.JsonDocument.Parse(json)
     doc.RootElement.GetProperty("RenderTime").GetDouble()
 Map [
@@ -33,8 +31,36 @@ Map [
 
 #!fsharp
 
-HTML(Flip.Make[|
-    struct ("Path tracing", "Results/RoughGlasses/PathTracer/Render.exr")
-    struct ("Guided", "Results/RoughGlasses/Guided/Render.exr")
-    struct ("VCM", "Results/RoughGlasses/VCM/Render.exr")
-|])
+FlipBook.Make [
+    "Path tracing", new RgbImage("Results/CornellBox/PathTracer/Render.exr")
+    "Guided", new RgbImage("Results/CornellBox/Guided/Render.exr")
+    "VCM", new RgbImage("Results/CornellBox/VCM/Render.exr")
+] |> HTML
+
+#!markdown
+
+### False-color error images
+
+#!fsharp
+
+let reference = new RgbImage("Results/CornellBox/Reference.exr")
+
+let colorMap = new FalseColor(new LinearColormap(0.0f, 0.1f))
+
+let tonemap (img:ImageBase) : ImageBase =
+    let err = new MonochromeImage(img.Width, img.Height)
+    for row in 0..img.Height-1 do
+        for col in 0..img.Width-1 do
+            let i = (img :?> RgbImage).GetPixel(col, row).Average
+            let r = reference.GetPixel(col, row).Average
+            err.SetPixel(col, row, (i - r)**2.0f / (r**2.0f + 0.001f))
+    // let filtered = new MonochromeImage(img.Width, img.Height)
+    // Filter.Gauss(err, filtered, 3);
+    // colorMap.Apply(filtered)
+    colorMap.Apply(err)
+
+FlipBook.Make(tonemap, [
+    "Path tracing", new RgbImage("Results/CornellBox/PathTracer/Render.exr")
+    "Guided", new RgbImage("Results/CornellBox/Guided/Render.exr")
+    "VCM", new RgbImage("Results/CornellBox/VCM/Render.exr")
+]) |> HTML
