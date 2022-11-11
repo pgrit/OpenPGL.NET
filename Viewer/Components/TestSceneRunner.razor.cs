@@ -157,7 +157,8 @@ namespace Viewer.Components {
         async Task Query(int col, int row, Ray ray, SurfacePoint point) {
             // Query the guiding cache at the given position
             using (SurfaceSamplingDistribution distrib = new(integrator.GuidingField)) {
-                distrib.Init(point.Position, 0.5f);
+                var u = 0.5f;
+                distrib.Init(point.Position, ref u);
                 await Task.Run(() => distributionImage = MakeDistributionImage(distrib, resolution));
             }
 

@@ -17,8 +17,9 @@ internal static partial class OpenPGL {
     public static extern void pglSurfaceSamplingDistributionClear(IntPtr handle);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern void pglFieldInitSurfaceSamplingDistribution(IntPtr fieldHandle, IntPtr handle,
-        Vector3 samplePosition, float sample1D, [MarshalAs(UnmanagedType.I1)] bool useParallaxComp);
+    [return: MarshalAs(UnmanagedType.I1)]
+    public static extern bool pglFieldInitSurfaceSamplingDistribution(IntPtr fieldHandle, IntPtr handle,
+        Vector3 samplePosition, ref float sample1D, [MarshalAs(UnmanagedType.I1)] bool useParallaxComp);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     public static extern void pglSurfaceSamplingDistributionApplyCosineProduct(IntPtr handle, Vector3 normal);
@@ -53,8 +54,8 @@ public class SurfaceSamplingDistribution : IDisposable {
 
     public void Clear() => OpenPGL.pglSurfaceSamplingDistributionClear(handle);
 
-    public void Init(Vector3 pos, float sample1D, bool useParallaxCompensation = true)
-    => OpenPGL.pglFieldInitSurfaceSamplingDistribution(field.Handle, handle, pos, sample1D,
+    public void Init(Vector3 pos, ref float sample1D, bool useParallaxCompensation = true)
+    => OpenPGL.pglFieldInitSurfaceSamplingDistribution(field.Handle, handle, pos, ref sample1D,
         useParallaxCompensation);
 
     public void ApplyCosineProduct(Vector3 normal)

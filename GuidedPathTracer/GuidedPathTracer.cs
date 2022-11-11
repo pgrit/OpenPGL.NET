@@ -129,7 +129,8 @@ public class GuidedPathTracer : PathLenLoggingPathTracer {
 
         if (GuidingEnabled) {
             distribution = distributionBuffer.Value;
-            distribution.Init(hit.Position, state.Rng.NextFloat(), useParallaxCompensation: true);
+            float u = state.Rng.NextFloat();
+            distribution.Init(hit.Position, ref u, useParallaxCompensation: true);
             distribution.ApplyCosineProduct(hit.ShadingNormal);
         }
         return distribution;

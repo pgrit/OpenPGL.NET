@@ -26,12 +26,12 @@ public class Experiment : SeeSharp.Experiments.Experiment {
             SpatialSettings = new KdTreeSettings() { KnnLookup = false },
             WriteIterationsAsLayers = false,
         }),
-        // new("GuidedKnn", new GuidedPathTracer() {
-        //     TotalSpp = numSamples,
-        //     MaximumRenderTimeMs = maxTime,
-        //     NumShadowRays = 1,
-        //     SpatialSettings = new KdTreeSettings() { KnnLookup = true }
-        // }),
+        new("GuidedKnn", new GuidedPathTracer() {
+            TotalSpp = numSamples,
+            MaximumRenderTimeMs = maxTime,
+            NumShadowRays = 1,
+            SpatialSettings = new KdTreeSettings() { KnnLookup = true }
+        }),
         new("Vcm", new VertexConnectionAndMerging() {
            NumIterations = numSamples / 2,
            MaximumRenderTimeMs = maxTime,

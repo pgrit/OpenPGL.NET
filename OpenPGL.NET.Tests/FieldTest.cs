@@ -26,7 +26,8 @@ namespace OpenPGL.NET.Tests {
 
             // Check that a valid region is found in the center
             SurfaceSamplingDistribution distribution = new(field);
-            distribution.Init(new(0.5f, 0.5f, 0), 0.5f);
+            var u = 0.5f;
+            distribution.Init(new(0.5f, 0.5f, 0), ref u);
             var region = distribution.Region;
 
             Assert.True(region.IsValid);
@@ -57,7 +58,8 @@ namespace OpenPGL.NET.Tests {
 
             // Check that a valid region is found in the center
             SurfaceSamplingDistribution distribution = new(field);
-            distribution.Init(new(0.5f, 0.5f, 0), 0.5f);
+            var u = 0.5f;
+            distribution.Init(new(0.5f, 0.5f, 0), ref u);
             var region = distribution.Region;
 
             Assert.True(region.IsValid);

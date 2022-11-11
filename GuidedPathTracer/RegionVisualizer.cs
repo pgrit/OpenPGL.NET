@@ -22,7 +22,8 @@ namespace GuidedPathTracer {
 
             // Look up the containing region of the guiding field
             SurfaceSamplingDistribution distribution = new(GuidingField);
-            distribution.Init(hit.Position, 0.5f, useParallaxCompensation: true);
+            var u = 0.5f;
+            distribution.Init(hit.Position, ref u, useParallaxCompensation: true);
             distribution.ApplyCosineProduct(hit.ShadingNormal);
 
             var region = distribution.Region;
