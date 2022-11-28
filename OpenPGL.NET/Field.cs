@@ -18,7 +18,7 @@ internal static partial class OpenPGL {
         public PGL_DIRECTIONAL_DISTRIBUTION_TYPE directionalDistributionType;
         public IntPtr directionalDistributionArguments;
         // for debugging
-        [MarshalAs(UnmanagedType.I1)] public bool useParallaxCompensation;
+        [MarshalAs(UnmanagedType.I1)] public bool deterministic;
     }
 
     [StructLayout(LayoutKind.Sequential)]
