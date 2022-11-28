@@ -26,6 +26,21 @@ internal static partial class OpenPGL {
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     public static extern IntPtr pglSurfaceSamplingGetRegion(IntPtr handle);
+
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern float pglSurfaceSamplingDistributionLobePDF(IntPtr surfaceSamplingDistribution,
+        UIntPtr i, Vector3 direction);
+
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern UIntPtr pglSurfaceSamplingDistributionNumLobes(IntPtr surfaceSamplingDistribution);
+
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern float pglSurfaceSamplingDistributionGetLobeWeight(IntPtr surfaceSamplingDistribution,
+        UIntPtr i);
+
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void pglSurfaceSamplingDistributionSetLobeWeight(IntPtr surfaceSamplingDistribution,
+        UIntPtr i, float weight);
 }
 
 public class SurfaceSamplingDistribution : IDisposable {
@@ -63,4 +78,23 @@ public class SurfaceSamplingDistribution : IDisposable {
     public Region Region => new(OpenPGL.pglSurfaceSamplingGetRegion(handle));
 
     ~SurfaceSamplingDistribution() => Dispose();
+
+    public int NumLobes => (int) OpenPGL.pglSurfaceSamplingDistributionNumLobes(handle);
+
+    public float ComputeLobePdf(int lobeIdx, in Vector3 direction)
+    => OpenPGL.pglSurfaceSamplingDistributionLobePDF(handle, new((uint)lobeIdx), direction);
+
+    public float[] LobeWeights {
+        get {
+            float[] weights = new float[NumLobes];
+            for (int i = 0; i < weights.Length; ++i)
+                weights[i] = OpenPGL.pglSurfaceSamplingDistributionGetLobeWeight(handle, (UIntPtr)i);
+            return weights;
+        }
+        set {
+            Debug.Assert(value.Length == NumLobes, "must set all lobe weights");
+            for (int i = 0; i < value.Length; ++i)
+                OpenPGL.pglSurfaceSamplingDistributionSetLobeWeight(handle, (UIntPtr)i, value[i]);
+        }
+    }
 }
