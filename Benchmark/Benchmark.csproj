@@ -2,10 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\OpenPGL.NET\OpenPGL.NET.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="TinyEmbree" Version="0.4.4" />
+    <ProjectReference Include="..\..\SeeSharp\SeeSharp\SeeSharp.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
