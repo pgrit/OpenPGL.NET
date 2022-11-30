@@ -2,9 +2,6 @@ namespace OpenPGL.NET;
 
 internal static partial class OpenPGL {
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern IntPtr pglNewVolumeSamplingDistribution();
-
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     public static extern void pglReleaseVolumeSamplingDistribution(IntPtr handle);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
@@ -21,15 +18,20 @@ internal static partial class OpenPGL {
     public static extern void pglVolumeSamplingDistributionClear(IntPtr handle);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern void pglVolumeSamplingDistributionInit(IntPtr handle, IntPtr regionHandle,
-        Vector3 samplePosition, [MarshalAs(UnmanagedType.I1)] bool useParallaxComp);
+    public static extern IntPtr pglFieldNewVolumeSamplingDistribution(IntPtr field);
+
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern bool pglFieldInitVolumeSamplingDistribution(IntPtr field, IntPtr volumeSamplingDistribution,
+        Vector3 position, ref float sample1D);
 }
 
 public class VolumeSamplingDistribution : IDisposable {
     IntPtr handle;
+    Field field;
 
-    public VolumeSamplingDistribution() {
-        handle = OpenPGL.pglNewVolumeSamplingDistribution();
+    public VolumeSamplingDistribution(Field field) {
+        this.field = field;
+        handle = OpenPGL.pglFieldNewVolumeSamplingDistribution(field.Handle);
     }
 
     public void Dispose() {
@@ -51,8 +53,8 @@ public class VolumeSamplingDistribution : IDisposable {
 
     public void Clear() => OpenPGL.pglVolumeSamplingDistributionClear(handle);
 
-    public void Init(Region region, Vector3 pos, bool useParallaxCompensation = true)
-    => OpenPGL.pglVolumeSamplingDistributionInit(handle, region.Handle, pos, useParallaxCompensation);
+    public void Init(Vector3 pos, ref float sample1D)
+    => OpenPGL.pglFieldInitVolumeSamplingDistribution(field.Handle, handle, pos, ref sample1D);
 
     ~VolumeSamplingDistribution() => Dispose();
 }

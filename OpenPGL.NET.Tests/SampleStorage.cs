@@ -51,11 +51,7 @@ namespace OpenPGL.NET.Tests {
             segment.DirectContribution = new(10, 10, 10);
 
             System.Random rng = new(1337);
-            SamplerWrapper sampler = new(
-                () => (float)rng.NextDouble(),
-                () => new((float)rng.NextDouble(), (float)rng.NextDouble())
-            );
-            uint num = storage.PrepareSamples(false, sampler, true, true, true);
+            uint num = storage.PrepareSamples(false, true, true);
 
             Assert.Equal(1u, num);
             Assert.Equal(1, storage.Samples.Length);
@@ -105,12 +101,7 @@ namespace OpenPGL.NET.Tests {
             segment.Normal = new(0, 0, -1);
             segment.DirectContribution = new(10, 10, 10);
 
-            System.Random rng = new(1337);
-            SamplerWrapper sampler = new(
-                () => (float)rng.NextDouble(),
-                () => new((float)rng.NextDouble(), (float)rng.NextDouble())
-            );
-            uint num = storage.PrepareSamples(false, sampler, true, true, true);
+            uint num = storage.PrepareSamples(false, true, true);
 
             Assert.Equal(1u, num);
             Assert.Equal(1, storage.Samples.Length);
@@ -192,11 +183,7 @@ namespace OpenPGL.NET.Tests {
             segment3.Position = new(0, 0, 0);
 
             System.Random rng = new(1337);
-            SamplerWrapper sampler = new(
-                () => (float)rng.NextDouble(),
-                () => new((float)rng.NextDouble(), (float)rng.NextDouble())
-            );
-            uint num = storage.PrepareSamples(false, sampler, true, true, true);
+            uint num = storage.PrepareSamples(false, true, true);
 
             Assert.Equal(1u, num);
             Assert.Equal(1, storage.Samples.Length);

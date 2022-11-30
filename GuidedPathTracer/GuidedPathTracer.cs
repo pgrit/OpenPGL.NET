@@ -130,7 +130,7 @@ public class GuidedPathTracer : PathLenLoggingPathTracer {
         if (GuidingEnabled) {
             distribution = distributionBuffer.Value;
             float u = state.Rng.NextFloat();
-            distribution.Init(hit.Position, ref u, useParallaxCompensation: true);
+            distribution.Init(hit.Position, ref u);
             distribution.ApplyCosineProduct(hit.ShadingNormal);
         }
         return distribution;
@@ -254,11 +254,7 @@ public class GuidedPathTracer : PathLenLoggingPathTracer {
         }
 
         // Generate the samples and add them to the global cache
-        // TODO provide sampler (with more efficient wrapper)
-        SamplerWrapper sampler = new(null, null);
         uint num = pathStorage.Value.PrepareSamples(
-            sampler: sampler,
-            splatSamples: false,
             useNEEMiWeights: false,
             guideDirectLight: false,
             rrAffectsDirectContribution: true);

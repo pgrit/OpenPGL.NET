@@ -75,7 +75,7 @@ public class SurfaceSamplingDistribution : IDisposable {
     public void ApplyCosineProduct(Vector3 normal)
     => OpenPGL.pglSurfaceSamplingDistributionApplyCosineProduct(handle, normal);
 
-    public Region Region => new(OpenPGL.pglSurfaceSamplingGetRegion(handle));
+    public IntPtr Region => OpenPGL.pglSurfaceSamplingGetRegion(handle);
 
     ~SurfaceSamplingDistribution() => Dispose();
 

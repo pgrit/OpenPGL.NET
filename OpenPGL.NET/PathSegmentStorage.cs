@@ -24,7 +24,6 @@ internal static partial class OpenPGL {
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     public static extern IntPtr pglPathSegmentStoragePrepareSamples(IntPtr pathSegmentStorage,
-        [MarshalAs(UnmanagedType.I1), In] in bool spaltSamples, [In, Out] ref Sampler sampler,
         [MarshalAs(UnmanagedType.I1)] bool useNEEMiWeights,
         [MarshalAs(UnmanagedType.I1)] bool guideDirectLight,
         [MarshalAs(UnmanagedType.I1)] bool rrEffectsDirectContribution);
@@ -58,20 +57,12 @@ public class PathSegmentStorage : IDisposable {
         OpenPGL.pglPathSegmentStorageClear(storage);
     }
 
-    public uint PrepareSamples(bool splatSamples, SamplerWrapper sampler, bool useNEEMiWeights,
-                               bool guideDirectLight, bool rrAffectsDirectContribution) {
+    public uint PrepareSamples(bool useNEEMiWeights, bool guideDirectLight, bool rrAffectsDirectContribution) {
         Debug.Assert(!IsPrepared);
         IsPrepared = true;
 
-        // Only allocate the sampler if it is actually needed.
-        OpenPGL.Sampler samplerData;
-        if (splatSamples)
-            samplerData = sampler.ToUnmanaged();
-        else
-            samplerData = new() { };
-
-        return (uint)OpenPGL.pglPathSegmentStoragePrepareSamples(storage, in splatSamples,
-            ref samplerData, useNEEMiWeights, guideDirectLight, rrAffectsDirectContribution);
+        return (uint)OpenPGL.pglPathSegmentStoragePrepareSamples(storage, useNEEMiWeights, guideDirectLight,
+            rrAffectsDirectContribution);
     }
 
     public unsafe Span<SampleData> Samples {

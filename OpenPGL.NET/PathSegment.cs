@@ -77,7 +77,6 @@ public unsafe struct PathSegment {
             ptr->TransmittanceWeight = value;
         }
     }
-    public Region Region { set { ptr->Region = value.Handle; } }
 
     public void SetDefaults() {
         Position = Vector3.Zero;

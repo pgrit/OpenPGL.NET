@@ -105,13 +105,6 @@ internal static partial class OpenPGL {
     public static extern void pglFieldUpdate(IntPtr field, IntPtr sampleStorage, UIntPtr numPerPixelSamples);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    // public static extern IntPtr pglFieldGetSurfaceRegion(IntPtr field, Vector3 position, IntPtr sampler);
-    public static extern IntPtr pglFieldGetSurfaceRegion(IntPtr field, Vector3 position, in Sampler sampler);
-
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern IntPtr pglFieldGetVolumeRegion(IntPtr field, Vector3 position, in Sampler sampler);
-
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     public static extern void pglFieldSetSceneBounds(IntPtr field, BoundingBox bounds);
 }
 
@@ -165,30 +158,13 @@ public struct FieldSettings {
 
 public class Field : IDisposable {
     internal IntPtr Handle;
-
-    OpenPGL.Sampler sampler;
-    OpenPGL.Sampler.PGLSamplerNext1DFunction next1d;
-    OpenPGL.Sampler.PGLSamplerNext2DFunction next2d;
-    Random rng;
     Device device;
 
-    public Field(FieldSettings settings = new(), int knnSamplerSeed = 42133742) {
+    public Field(FieldSettings settings = new()) {
         device = new();
         var arguments = settings.MakeArguments();
         Handle = OpenPGL.pglDeviceNewField(device.Ptr, arguments);
         Debug.Assert(Handle != IntPtr.Zero);
-
-        // We pre-allocate a global sampler for stochastic knn lookups. The disadvantage is that the user
-        // has no control over the sampling. But the severe overhead of GetFunctionPointerForDelegate()
-        // is avoided. An alternative would be to put the burden on the user to pre-allocate a delegate
-        // and feed it with the correct information via the IntPtr sized user data.
-        rng = new(knnSamplerSeed);
-        next1d = _ => { lock (rng) return (float)rng.NextDouble(); };
-        next2d = _ => { lock (rng) return new((float)rng.NextDouble(), (float)rng.NextDouble()); };
-        sampler = new() {
-            Next1D = Marshal.GetFunctionPointerForDelegate(next1d),
-            Next2D = Marshal.GetFunctionPointerForDelegate(next2d)
-        };
     }
 
     public void Dispose() {
