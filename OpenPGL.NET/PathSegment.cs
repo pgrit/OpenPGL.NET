@@ -18,14 +18,14 @@ internal static partial class OpenPGL {
         public float RussianRouletteProbability;
         public float Eta;
         public float Roughness;
-        public IntPtr Region;
+        public nint Region;
     }
 }
 
 public unsafe struct PathSegment {
     private OpenPGL.PathSegmentData* ptr;
 
-    internal PathSegment(IntPtr data) {
+    internal PathSegment(nint data) {
         ptr = (OpenPGL.PathSegmentData*)data.ToPointer();
     }
 

@@ -2,31 +2,31 @@ namespace OpenPGL.NET;
 
 internal static partial class OpenPGL {
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern void pglReleaseVolumeSamplingDistribution(IntPtr handle);
+    public static extern void pglReleaseVolumeSamplingDistribution(nint handle);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern Vector3 pglVolumeSamplingDistributionSample(IntPtr handle, Vector2 sample2D);
+    public static extern Vector3 pglVolumeSamplingDistributionSample(nint handle, Vector2 sample2D);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern float pglVolumeSamplingDistributionPDF(IntPtr handle, Vector3 direction);
+    public static extern float pglVolumeSamplingDistributionPDF(nint handle, Vector3 direction);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     [return: MarshalAs(UnmanagedType.I1)]
-    public static extern bool pglVolumeSamplingDistributionIsValid(IntPtr handle);
+    public static extern bool pglVolumeSamplingDistributionIsValid(nint handle);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern void pglVolumeSamplingDistributionClear(IntPtr handle);
+    public static extern void pglVolumeSamplingDistributionClear(nint handle);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern IntPtr pglFieldNewVolumeSamplingDistribution(IntPtr field);
+    public static extern nint pglFieldNewVolumeSamplingDistribution(nint field);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern bool pglFieldInitVolumeSamplingDistribution(IntPtr field, IntPtr volumeSamplingDistribution,
+    public static extern bool pglFieldInitVolumeSamplingDistribution(nint field, nint volumeSamplingDistribution,
         Vector3 position, ref float sample1D);
 }
 
 public class VolumeSamplingDistribution : IDisposable {
-    IntPtr handle;
+    nint handle;
     Field field;
 
     public VolumeSamplingDistribution(Field field) {
@@ -35,9 +35,9 @@ public class VolumeSamplingDistribution : IDisposable {
     }
 
     public void Dispose() {
-        if (handle != IntPtr.Zero) {
+        if (handle != nint.Zero) {
             OpenPGL.pglReleaseVolumeSamplingDistribution(handle);
-            handle = IntPtr.Zero;
+            handle = nint.Zero;
         }
     }
 

@@ -2,45 +2,45 @@ namespace OpenPGL.NET;
 
 internal static partial class OpenPGL {
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern IntPtr pglNewSampleStorage();
+    public static extern nint pglNewSampleStorage();
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern void pglReleaseSampleStorage(IntPtr handle);
+    public static extern void pglReleaseSampleStorage(nint handle);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern void pglSampleStorageAddSample(IntPtr handle, in SampleData sample);
+    public static extern void pglSampleStorageAddSample(nint handle, in SampleData sample);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern void pglSampleStorageAddSamples(IntPtr handle, [In] SampleData[] samples, UIntPtr num);
+    public static extern void pglSampleStorageAddSamples(nint handle, [In] SampleData[] samples, nuint num);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern void pglSampleStorageAddSamples(IntPtr handle, IntPtr samples, UIntPtr num);
+    public static extern void pglSampleStorageAddSamples(nint handle, nint samples, nuint num);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern void pglSampleStorageReserve(IntPtr handle, UIntPtr sizeSurface, UIntPtr sizeVolume);
+    public static extern void pglSampleStorageReserve(nint handle, nuint sizeSurface, nuint sizeVolume);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern void pglSampleStorageClear(IntPtr handle);
+    public static extern void pglSampleStorageClear(nint handle);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern uint pglSampleStorageGetSizeSurface(IntPtr sampleStorage);
+    public static extern uint pglSampleStorageGetSizeSurface(nint sampleStorage);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern uint pglSampleStorageGetSizeVolume(IntPtr sampleStorage);
+    public static extern uint pglSampleStorageGetSizeVolume(nint sampleStorage);
 }
 
 public class SampleStorage : IDisposable {
-    internal IntPtr Handle;
+    internal nint Handle;
 
     public SampleStorage() {
         Handle = OpenPGL.pglNewSampleStorage();
-        Debug.Assert(Handle != IntPtr.Zero);
+        Debug.Assert(Handle != nint.Zero);
     }
 
     public void Dispose() {
-        if (Handle != IntPtr.Zero) {
+        if (Handle != nint.Zero) {
             OpenPGL.pglReleaseSampleStorage(Handle);
-            Handle = IntPtr.Zero;
+            Handle = nint.Zero;
         }
     }
 
@@ -51,7 +51,7 @@ public class SampleStorage : IDisposable {
     public void AddSamples(SampleData[] samples)
     => OpenPGL.pglSampleStorageAddSamples(Handle, samples, new((uint)samples.Length));
 
-    public void AddSamples(IntPtr samples, uint num)
+    public void AddSamples(nint samples, uint num)
     => OpenPGL.pglSampleStorageAddSamples(Handle, samples, new(num));
 
     public void Reserve(uint sizeSurface, uint sizeVolume)

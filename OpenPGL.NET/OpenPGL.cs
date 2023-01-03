@@ -9,7 +9,7 @@ internal static partial class OpenPGL {
         NativeLibrary.SetDllImportResolver(typeof(OpenPGL).Assembly, ImportResolver);
     }
 
-    private static IntPtr ImportResolver(string libraryName, Assembly assembly,
+    private static nint ImportResolver(string libraryName, Assembly assembly,
                                          DllImportSearchPath? dllImportSearchPath) {
         string mappedName = libraryName;
 

@@ -34,7 +34,7 @@ public class FieldTest
         distribution.Init(new(0.5f, 0.5f, 0), ref u);
         var region = distribution.Region;
 
-        Assert.True(region != System.IntPtr.Zero);
+        Assert.True(region != nint.Zero);
     }
 
     [Fact]
@@ -69,6 +69,6 @@ public class FieldTest
         distribution.Init(new(0.5f, 0.5f, 0), ref u);
         var region = distribution.Region;
 
-        Assert.True(region != System.IntPtr.Zero);
+        Assert.True(region != nint.Zero);
     }
 }

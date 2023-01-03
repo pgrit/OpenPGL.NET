@@ -189,5 +189,62 @@ namespace OpenPGL.NET.Tests {
             Assert.Equal(1, storage.Samples.Length);
             Assert.Equal(1, storage.Samples[0].Distance);
         }
+
+        [Fact]
+        public void DirectLightPath_ShouldBeAdded() {
+            PathSegmentStorage storage = new();
+            storage.Reserve(10);
+
+            // Surface hit point
+            PathSegment segment = storage.NextSegment();
+            segment.Position = new(0, 0, 3);
+            segment.Normal = Vector3.UnitZ;
+            segment.DirectionIn = Vector3.UnitZ;
+            segment.DirectionOut = Vector3.UnitZ;
+            segment.ScatteredContribution = new(1, 1, 1);
+            segment.ScatteringWeight = new(1, 1, 1);
+
+            // Light vertex
+            segment = storage.NextSegment();
+            segment.Position = new(0, 0, 5);
+            segment.DirectContribution = new(10, 10, 10);
+
+            uint num = storage.PrepareSamples(true, true, true);
+
+            Assert.Equal(1u, num);
+            Assert.Equal(1, storage.Samples.Length);
+
+            var sample = storage.Samples[0];
+            Assert.Equal(2, sample.Distance);
+            Assert.Equal(10, sample.Weight);
+            Assert.Equal(new Vector3(0, 0, 3), sample.Position);
+            Assert.Equal(new Vector3(0, 0, 1), sample.Direction);
+            Assert.Equal(1, sample.Pdf);
+        }
+
+        [Fact]
+        public void DirectLightPath_ShouldNotBeAdded() {
+            PathSegmentStorage storage = new();
+            storage.Reserve(10);
+
+            // Surface hit point
+            PathSegment segment = storage.NextSegment();
+            segment.Position = new(0, 0, 3);
+            segment.Normal = Vector3.UnitZ;
+            segment.DirectionIn = Vector3.UnitZ;
+            segment.DirectionOut = Vector3.UnitZ;
+            segment.ScatteredContribution = new(1, 1, 1);
+            segment.ScatteringWeight = new(1, 1, 1);
+
+            // Light vertex
+            segment = storage.NextSegment();
+            segment.Position = new(0, 0, 5);
+            segment.DirectContribution = new(10, 10, 10);
+
+            uint num = storage.PrepareSamples(true, false, true);
+
+            Assert.Equal(0u, num);
+            Assert.Equal(0, storage.Samples.Length);
+        }
     }
 }

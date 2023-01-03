@@ -14,9 +14,9 @@ internal static partial class OpenPGL {
     [StructLayout(LayoutKind.Sequential)]
     public struct PGLFieldArguments {
         public PGL_SPATIAL_STRUCTURE_TYPE spatialStructureType;
-        public IntPtr spatialSturctureArguments;
+        public nint spatialSturctureArguments;
         public PGL_DIRECTIONAL_DISTRIBUTION_TYPE directionalDistributionType;
-        public IntPtr directionalDistributionArguments;
+        public nint directionalDistributionArguments;
         // for debugging
         [MarshalAs(UnmanagedType.I1)] public bool deterministic;
     }
@@ -24,19 +24,19 @@ internal static partial class OpenPGL {
     [StructLayout(LayoutKind.Sequential)]
     public struct PGLKDTreeArguments {
         [MarshalAs(UnmanagedType.I1)] public bool knnLookup;
-        public UIntPtr minSamples;
-        public UIntPtr maxSamples;
-        public UIntPtr maxDepth;
+        public nuint minSamples;
+        public nuint maxSamples;
+        public nuint maxDepth;
     };
 
     [StructLayout(LayoutKind.Sequential)]
     public struct PGLVMMFactoryArguments {
         // weighted EM arguments
-        UIntPtr initK;
+        nuint initK;
         float initKappa;
 
-        UIntPtr maxK;
-        UIntPtr maxEMIterrations;
+        nuint maxK;
+        nuint maxEMIterrations;
 
         float maxKappa;
         //float maxMeanCosine { KappaToMeanCosine<float>(OPENPGL_MAX_KAPPA)};
@@ -90,22 +90,22 @@ internal static partial class OpenPGL {
         PGL_SPATIAL_STRUCTURE_TYPE spatialType, PGL_DIRECTIONAL_DISTRIBUTION_TYPE directionalType);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern IntPtr pglDeviceNewField(IntPtr device, PGLFieldArguments arguments);
+    public static extern nint pglDeviceNewField(nint device, PGLFieldArguments arguments);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern void pglReleaseField(IntPtr device, IntPtr field);
+    public static extern void pglReleaseField(nint device, nint field);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern uint pglFieldGetIteration(IntPtr field);
+    public static extern uint pglFieldGetIteration(nint field);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern uint pglFieldGetTotalSPP(IntPtr field);
+    public static extern uint pglFieldGetTotalSPP(nint field);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern void pglFieldUpdate(IntPtr field, IntPtr sampleStorage, UIntPtr numPerPixelSamples);
+    public static extern void pglFieldUpdate(nint field, nint sampleStorage, nuint numPerPixelSamples);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern void pglFieldSetSceneBounds(IntPtr field, BoundingBox bounds);
+    public static extern void pglFieldSetSceneBounds(nint field, BoundingBox bounds);
 }
 
 [StructLayout(LayoutKind.Sequential)]
@@ -157,20 +157,20 @@ public struct FieldSettings {
 }
 
 public class Field : IDisposable {
-    internal IntPtr Handle;
+    internal nint Handle;
     Device device;
 
     public Field(FieldSettings settings = new()) {
         device = new();
         var arguments = settings.MakeArguments();
         Handle = OpenPGL.pglDeviceNewField(device.Ptr, arguments);
-        Debug.Assert(Handle != IntPtr.Zero);
+        Debug.Assert(Handle != nint.Zero);
     }
 
     public void Dispose() {
-        if (Handle != IntPtr.Zero) {
+        if (Handle != nint.Zero) {
             OpenPGL.pglReleaseField(device.Ptr, Handle);
-            Handle = IntPtr.Zero;
+            Handle = nint.Zero;
             device.Dispose();
         }
     }

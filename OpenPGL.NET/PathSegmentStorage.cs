@@ -2,45 +2,45 @@ namespace OpenPGL.NET;
 
 internal static partial class OpenPGL {
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern IntPtr pglNewPathSegmentStorage();
+    public static extern nint pglNewPathSegmentStorage();
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern void pglReleasePathSegmentStorage(IntPtr pathSegmentStorage);
+    public static extern void pglReleasePathSegmentStorage(nint pathSegmentStorage);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern void pglPathSegmentStorageReserve(IntPtr pathSegmentStorage, UIntPtr size);
+    public static extern void pglPathSegmentStorageReserve(nint pathSegmentStorage, nuint size);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern void pglPathSegmentStorageClear(IntPtr pathSegmentStorage);
+    public static extern void pglPathSegmentStorageClear(nint pathSegmentStorage);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern IntPtr pglPathSegmentStorageGetSamples(IntPtr pathSegmentStorage, out UIntPtr nSamples);
+    public static extern nint pglPathSegmentStorageGetSamples(nint pathSegmentStorage, out nuint nSamples);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern void pglPathSegmentStorageAddSample(IntPtr pathSegmentStorage, SampleData sample);
+    public static extern void pglPathSegmentStorageAddSample(nint pathSegmentStorage, SampleData sample);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern IntPtr pglPathSegmentStorageNextSegment(IntPtr pathSegmentStorage);
+    public static extern nint pglPathSegmentStorageNextSegment(nint pathSegmentStorage);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern IntPtr pglPathSegmentStoragePrepareSamples(IntPtr pathSegmentStorage,
+    public static extern nint pglPathSegmentStoragePrepareSamples(nint pathSegmentStorage,
         [MarshalAs(UnmanagedType.I1)] bool useNEEMiWeights,
         [MarshalAs(UnmanagedType.I1)] bool guideDirectLight,
         [MarshalAs(UnmanagedType.I1)] bool rrEffectsDirectContribution);
 }
 
 public class PathSegmentStorage : IDisposable {
-    IntPtr storage;
+    nint storage;
 
     public PathSegmentStorage() {
         storage = OpenPGL.pglNewPathSegmentStorage();
-        Debug.Assert(storage != IntPtr.Zero);
+        Debug.Assert(storage != nint.Zero);
     }
 
     public void Dispose() {
-        if (storage != IntPtr.Zero) {
+        if (storage != nint.Zero) {
             OpenPGL.pglReleasePathSegmentStorage(storage);
-            storage = IntPtr.Zero;
+            storage = nint.Zero;
         }
     }
 
@@ -67,12 +67,12 @@ public class PathSegmentStorage : IDisposable {
 
     public unsafe Span<SampleData> Samples {
         get {
-            IntPtr ptr = OpenPGL.pglPathSegmentStorageGetSamples(storage, out UIntPtr num);
+            nint ptr = OpenPGL.pglPathSegmentStorageGetSamples(storage, out nuint num);
             return new(ptr.ToPointer(), (int)num);
         }
     }
 
-    public IntPtr SamplesRawPointer => OpenPGL.pglPathSegmentStorageGetSamples(storage, out _);
+    public nint SamplesRawPointer => OpenPGL.pglPathSegmentStorageGetSamples(storage, out _);
 
     public void AddSample(SampleData sample) => OpenPGL.pglPathSegmentStorageAddSample(storage, sample);
 
