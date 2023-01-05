@@ -84,6 +84,9 @@ public class SurfaceSamplingDistribution : IDisposable {
     public float ComputeLobePdf(int lobeIdx, in Vector3 direction)
     => OpenPGL.pglSurfaceSamplingDistributionLobePDF(handle, new((uint)lobeIdx), direction);
 
+    public float GetLobeWeight(int lobeIdx)
+    => OpenPGL.pglSurfaceSamplingDistributionGetLobeWeight(handle, (nuint)lobeIdx);
+
     public float[] LobeWeights {
         get {
             float[] weights = new float[NumLobes];
