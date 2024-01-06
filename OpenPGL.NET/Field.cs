@@ -32,37 +32,37 @@ internal static partial class OpenPGL {
     [StructLayout(LayoutKind.Sequential)]
     public struct PGLVMMFactoryArguments {
         // weighted EM arguments
-        nuint initK;
-        float initKappa;
+        public nuint initK;
+        public float initKappa;
 
-        nuint maxK;
-        nuint maxEMIterrations;
+        public nuint maxK;
+        public nuint maxEMIterrations;
 
-        float maxKappa;
+        public float maxKappa;
         //float maxMeanCosine { KappaToMeanCosine<float>(OPENPGL_MAX_KAPPA)};
-        float convergenceThreshold;
+        public float convergenceThreshold;
 
         // MAP prior parameters
         // weight prior
-        float weightPrior;
+        public float weightPrior;
 
         // concentration/meanCosine prior
-        float meanCosinePriorStrength;
-        float meanCosinePrior;
+        public float meanCosinePriorStrength;
+        public float meanCosinePrior;
 
         // adaptive split and merge arguments
-        [MarshalAs(UnmanagedType.I1)] bool useSplitAndMerge;
+        [MarshalAs(UnmanagedType.I1)] public bool useSplitAndMerge;
 
-        float splittingThreshold;
-        float mergingThreshold;
+        public float splittingThreshold;
+        public float mergingThreshold;
 
-        [MarshalAs(UnmanagedType.I1)] bool partialReFit;
-        int maxSplitItr;
+        [MarshalAs(UnmanagedType.I1)] public bool partialReFit;
+        public int maxSplitItr;
 
-        int minSamplesForSplitting;
-        int minSamplesForPartialRefitting;
-        int minSamplesForMerging;
-        [MarshalAs(UnmanagedType.I1)] bool parallaxCompensation;
+        public int minSamplesForSplitting;
+        public int minSamplesForPartialRefitting;
+        public int minSamplesForMerging;
+        // [MarshalAs(UnmanagedType.I1)] public bool parallaxCompensation;
     };
 
     enum PGLDQTLeafEstimator {
@@ -136,6 +136,65 @@ public class KdTreeSettings : SpatialSettings {
             maxDepth = new(MaxDepth)
         };
         Marshal.StructureToPtr<OpenPGL.PGLKDTreeArguments>(args, target.spatialSturctureArguments, true);
+    }
+}
+
+public class VMMDirectionalSettings : DirectionalSettings {
+    // Defaults extracted from the 06.01.2024 OpenPGL version
+
+    public uint InitK = 16;
+    public float InitKappa = 0.5f;
+
+    public nuint MaxK = 32;
+    public nuint MaxEMIterrations = 100;
+
+    public float MaxKappa = 320000;
+    public float ConvergenceThreshold = 0.005f;
+
+    public float WeightPrior = 0.01f;
+
+    public float MeanCosinePriorStrength = 0.2f;
+    public float MeanCosinePrior = 0;
+
+    public bool UseSplitAndMerge = true;
+
+    public float SplittingThreshold = 0.5f;
+    public float MergingThreshold = 0.025f;
+
+    public bool PartialReFit = true;
+    public int MaxSplitItr = 1;
+
+    public int MinSamplesForSplitting = 32000 / 8;
+    public int MinSamplesForPartialRefitting = 32000 / 8;
+    public int MinSamplesForMerging = 32000 / 4;
+    // public bool ParallaxCompensation=true;
+
+    internal override void SetArguments(ref OpenPGL.PGLFieldArguments target) {
+        // Ensure correct directional distribution type
+        if (target.directionalDistributionType == OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE.PGL_DIRECTIONAL_DISTRIBUTION_QUADTREE)
+            target.directionalDistributionType = OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE.PGL_DIRECTIONAL_DISTRIBUTION_PARALLAX_AWARE_VMM;
+
+        OpenPGL.PGLVMMFactoryArguments args = new() {
+            initK = InitK,
+            initKappa = InitKappa,
+            maxK = MaxK,
+            maxEMIterrations = MaxEMIterrations,
+            maxKappa = MaxKappa,
+            convergenceThreshold = ConvergenceThreshold,
+            weightPrior = WeightPrior,
+            meanCosinePriorStrength = MeanCosinePriorStrength,
+            meanCosinePrior = MeanCosinePrior,
+            useSplitAndMerge = UseSplitAndMerge,
+            splittingThreshold = SplittingThreshold,
+            mergingThreshold = MergingThreshold,
+            partialReFit = PartialReFit,
+            maxSplitItr = MaxSplitItr,
+            minSamplesForSplitting = MinSamplesForSplitting,
+            minSamplesForPartialRefitting = MinSamplesForPartialRefitting,
+            minSamplesForMerging = MinSamplesForMerging,
+            // parallaxCompensation = ParallaxCompensation,
+        };
+        Marshal.StructureToPtr<OpenPGL.PGLVMMFactoryArguments>(args, target.directionalDistributionArguments, true);
     }
 }
 
