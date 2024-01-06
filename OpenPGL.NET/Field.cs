@@ -36,7 +36,7 @@ internal static partial class OpenPGL {
         public float initKappa;
 
         public nuint maxK;
-        public nuint maxEMIterrations;
+        public nuint maxEMIterations;
 
         public float maxKappa;
         //float maxMeanCosine { KappaToMeanCosine<float>(OPENPGL_MAX_KAPPA)};
@@ -146,7 +146,7 @@ public class VMMDirectionalSettings : DirectionalSettings {
     public float InitKappa = 0.5f;
 
     public nuint MaxK = 32;
-    public nuint MaxEMIterrations = 100;
+    public nuint MaxEMIterations = 100;
 
     public float MaxKappa = 320000;
     public float ConvergenceThreshold = 0.005f;
@@ -178,7 +178,7 @@ public class VMMDirectionalSettings : DirectionalSettings {
             initK = InitK,
             initKappa = InitKappa,
             maxK = MaxK,
-            maxEMIterrations = MaxEMIterrations,
+            maxEMIterations = MaxEMIterations,
             maxKappa = MaxKappa,
             convergenceThreshold = ConvergenceThreshold,
             weightPrior = WeightPrior,
