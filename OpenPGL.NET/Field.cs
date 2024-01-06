@@ -142,11 +142,11 @@ public class KdTreeSettings : SpatialSettings {
 public class VMMDirectionalSettings : DirectionalSettings {
     // Defaults extracted from the 06.01.2024 OpenPGL version
 
-    public uint InitK = 16;
+    public int InitK = 16;
     public float InitKappa = 0.5f;
 
-    public nuint MaxK = 32;
-    public nuint MaxEMIterations = 100;
+    public int MaxK = 32;
+    public int MaxEMIterations = 100;
 
     public float MaxKappa = 320000;
     public float ConvergenceThreshold = 0.005f;
@@ -175,10 +175,10 @@ public class VMMDirectionalSettings : DirectionalSettings {
             target.directionalDistributionType = OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE.PGL_DIRECTIONAL_DISTRIBUTION_PARALLAX_AWARE_VMM;
 
         OpenPGL.PGLVMMFactoryArguments args = new() {
-            initK = InitK,
+            initK = (nuint)InitK,
             initKappa = InitKappa,
-            maxK = MaxK,
-            maxEMIterations = MaxEMIterations,
+            maxK = (nuint)MaxK,
+            maxEMIterations = (nuint)MaxEMIterations,
             maxKappa = MaxKappa,
             convergenceThreshold = ConvergenceThreshold,
             weightPrior = WeightPrior,
