@@ -167,12 +167,14 @@ public class VMMDirectionalSettings : DirectionalSettings {
     public int MinSamplesForSplitting = 32000 / 8;
     public int MinSamplesForPartialRefitting = 32000 / 8;
     public int MinSamplesForMerging = 32000 / 4;
-    // public bool ParallaxCompensation=true;
+
+    public bool UseParallaxCompensation = true;
 
     internal override void SetArguments(ref OpenPGL.PGLFieldArguments target) {
-        // Ensure correct directional distribution type
-        if (target.directionalDistributionType == OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE.PGL_DIRECTIONAL_DISTRIBUTION_QUADTREE)
+        if (UseParallaxCompensation)
             target.directionalDistributionType = OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE.PGL_DIRECTIONAL_DISTRIBUTION_PARALLAX_AWARE_VMM;
+        else
+            target.directionalDistributionType = OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE.PGL_DIRECTIONAL_DISTRIBUTION_VMM;
 
         OpenPGL.PGLVMMFactoryArguments args = new() {
             initK = (nuint)int.Max(1, InitK),
