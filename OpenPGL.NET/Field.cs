@@ -175,10 +175,10 @@ public class VMMDirectionalSettings : DirectionalSettings {
             target.directionalDistributionType = OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE.PGL_DIRECTIONAL_DISTRIBUTION_PARALLAX_AWARE_VMM;
 
         OpenPGL.PGLVMMFactoryArguments args = new() {
-            initK = (nuint)InitK,
+            initK = (nuint)int.Max(1, InitK),
             initKappa = InitKappa,
-            maxK = (nuint)MaxK,
-            maxEMIterations = (nuint)MaxEMIterations,
+            maxK = (nuint)int.Max(1, MaxK),
+            maxEMIterations = (nuint)int.Max(0, MaxEMIterations),
             maxKappa = MaxKappa,
             convergenceThreshold = ConvergenceThreshold,
             weightPrior = WeightPrior,
