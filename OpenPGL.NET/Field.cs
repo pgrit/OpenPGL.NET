@@ -250,7 +250,7 @@ public struct FieldSettings {
     public DirectionalSettings DirectionalSettings { get; init; }
 
     internal OpenPGL.PGLFieldArguments MakeArguments() {
-        // We requrie the correct struct and dist type for preallocation
+        // We require the correct struct and dist type for preallocation done inside pglFieldArgumentsSetDefaults
         OpenPGL.PGLFieldArguments arguments;
         OpenPGL.pglFieldArgumentsSetDefaults(out arguments,
             SpatialSettings.GetStructType(),
