@@ -129,7 +129,8 @@ public class KdTreeSettings : SpatialSettings {
     public uint MaxSamples = 32000;
     public uint MaxDepth = 32;
 
-    internal override OpenPGL.PGL_SPATIAL_STRUCTURE_TYPE StructType { get => OpenPGL.PGL_SPATIAL_STRUCTURE_TYPE.PGL_SPATIAL_STRUCTURE_KDTREE; }
+    internal override OpenPGL.PGL_SPATIAL_STRUCTURE_TYPE StructType
+    => OpenPGL.PGL_SPATIAL_STRUCTURE_TYPE.PGL_SPATIAL_STRUCTURE_KDTREE;
 
     internal override void SetArguments(ref OpenPGL.PGLFieldArguments target) {
         target.spatialStructureType = StructType;
@@ -139,7 +140,7 @@ public class KdTreeSettings : SpatialSettings {
             maxSamples = new(MaxSamples),
             maxDepth = new(MaxDepth)
         };
-        Marshal.StructureToPtr<OpenPGL.PGLKDTreeArguments>(args, target.spatialSturctureArguments, true);
+        Marshal.StructureToPtr(args, target.spatialSturctureArguments, true);
     }
 }
 
@@ -174,14 +175,11 @@ public class VMMDirectionalSettings : DirectionalSettings {
 
     public bool UseParallaxCompensation = true;
 
-    internal override OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE DistType { get {
-            if (UseParallaxCompensation)
-                return OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE.PGL_DIRECTIONAL_DISTRIBUTION_PARALLAX_AWARE_VMM;
-            else
-                return OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE.PGL_DIRECTIONAL_DISTRIBUTION_VMM;
-        }
-    }
-    
+    internal override OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE DistType
+    => UseParallaxCompensation
+    ? OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE.PGL_DIRECTIONAL_DISTRIBUTION_PARALLAX_AWARE_VMM
+    : OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE.PGL_DIRECTIONAL_DISTRIBUTION_VMM;
+
     internal override void SetArguments(ref OpenPGL.PGLFieldArguments target) {
         target.directionalDistributionType = DistType;
 
@@ -203,9 +201,8 @@ public class VMMDirectionalSettings : DirectionalSettings {
             minSamplesForSplitting = MinSamplesForSplitting,
             minSamplesForPartialRefitting = MinSamplesForPartialRefitting,
             minSamplesForMerging = MinSamplesForMerging,
-            // parallaxCompensation = ParallaxCompensation,
         };
-        Marshal.StructureToPtr<OpenPGL.PGLVMMFactoryArguments>(args, target.directionalDistributionArguments, true);
+        Marshal.StructureToPtr(args, target.directionalDistributionArguments, true);
     }
 }
 
@@ -225,8 +222,9 @@ public class DQTDirectionalSettings : DirectionalSettings {
     public float SplitThreshold = 0.01f;
     public float FootprintFactor = 1;
     public int MaxLevels = 12;
-    
-    internal override OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE DistType { get => OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE.PGL_DIRECTIONAL_DISTRIBUTION_QUADTREE; }
+
+    internal override OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE DistType
+    => OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE.PGL_DIRECTIONAL_DISTRIBUTION_QUADTREE;
 
     internal override void SetArguments(ref OpenPGL.PGLFieldArguments target) {
         target.directionalDistributionType = DistType;
@@ -238,7 +236,7 @@ public class DQTDirectionalSettings : DirectionalSettings {
             footprintFactor = FootprintFactor,
             maxLevels = (uint)int.Max(0, MaxLevels),
         };
-        Marshal.StructureToPtr<OpenPGL.PGLDQTFactoryArguments>(args, target.directionalDistributionArguments, true);
+        Marshal.StructureToPtr(args, target.directionalDistributionArguments, true);
     }
 }
 
@@ -253,9 +251,8 @@ public class Field : IDisposable {
 
     public Field(FieldSettings settings = new()) {
         device = new();
-        
-        OpenPGL.PGLFieldArguments arguments;
-        OpenPGL.pglFieldArgumentsSetDefaults(out arguments,
+
+        OpenPGL.pglFieldArgumentsSetDefaults(out var arguments,
             settings.SpatialSettings?.StructType ?? OpenPGL.PGL_SPATIAL_STRUCTURE_TYPE.PGL_SPATIAL_STRUCTURE_KDTREE,
             settings.DirectionalSettings?.DistType ?? OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE.PGL_DIRECTIONAL_DISTRIBUTION_PARALLAX_AWARE_VMM);
 
