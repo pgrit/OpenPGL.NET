@@ -114,12 +114,12 @@ public struct BoundingBox {
 }
 
 public abstract class SpatialSettings {
-    internal abstract OpenPGL.PGL_SPATIAL_STRUCTURE_TYPE GetStructType();
+    internal abstract OpenPGL.PGL_SPATIAL_STRUCTURE_TYPE StructType { get; }
     internal abstract void SetArguments(ref OpenPGL.PGLFieldArguments target);
 }
 
 public abstract class DirectionalSettings {
-    internal abstract OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE GetDistType();
+    internal abstract OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE DistType { get; }
     internal abstract void SetArguments(ref OpenPGL.PGLFieldArguments target);
 }
 
@@ -129,12 +129,10 @@ public class KdTreeSettings : SpatialSettings {
     public uint MaxSamples = 32000;
     public uint MaxDepth = 32;
 
-    internal override OpenPGL.PGL_SPATIAL_STRUCTURE_TYPE GetStructType() {
-        return OpenPGL.PGL_SPATIAL_STRUCTURE_TYPE.PGL_SPATIAL_STRUCTURE_KDTREE;
-    }
+    internal override OpenPGL.PGL_SPATIAL_STRUCTURE_TYPE StructType { get => OpenPGL.PGL_SPATIAL_STRUCTURE_TYPE.PGL_SPATIAL_STRUCTURE_KDTREE; }
 
     internal override void SetArguments(ref OpenPGL.PGLFieldArguments target) {
-        target.spatialStructureType = GetStructType();
+        target.spatialStructureType = StructType;
         OpenPGL.PGLKDTreeArguments args = new() {
             knnLookup = KnnLookup,
             minSamples = new(MinSamples),
@@ -176,15 +174,16 @@ public class VMMDirectionalSettings : DirectionalSettings {
 
     public bool UseParallaxCompensation = true;
 
-    internal override OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE GetDistType() {
-        if (UseParallaxCompensation)
-            return OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE.PGL_DIRECTIONAL_DISTRIBUTION_PARALLAX_AWARE_VMM;
-        else
-            return OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE.PGL_DIRECTIONAL_DISTRIBUTION_VMM;
+    internal override OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE DistType { get {
+            if (UseParallaxCompensation)
+                return OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE.PGL_DIRECTIONAL_DISTRIBUTION_PARALLAX_AWARE_VMM;
+            else
+                return OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE.PGL_DIRECTIONAL_DISTRIBUTION_VMM;
+        }
     }
     
     internal override void SetArguments(ref OpenPGL.PGLFieldArguments target) {
-        target.directionalDistributionType = GetDistType();
+        target.directionalDistributionType = DistType;
 
         OpenPGL.PGLVMMFactoryArguments args = new() {
             initK = (nuint)int.Max(1, InitK),
@@ -227,12 +226,10 @@ public class DQTDirectionalSettings : DirectionalSettings {
     public float FootprintFactor = 1;
     public int MaxLevels = 12;
     
-    internal override OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE GetDistType() {
-        return OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE.PGL_DIRECTIONAL_DISTRIBUTION_QUADTREE;
-    }
+    internal override OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE DistType { get => OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE.PGL_DIRECTIONAL_DISTRIBUTION_QUADTREE; }
 
     internal override void SetArguments(ref OpenPGL.PGLFieldArguments target) {
-        target.directionalDistributionType = GetDistType();
+        target.directionalDistributionType = DistType;
 
         OpenPGL.PGLDQTFactoryArguments args = new() {
             leafEstimator = (OpenPGL.PGLDQTLeafEstimator) LeafEstimator,
@@ -248,19 +245,6 @@ public class DQTDirectionalSettings : DirectionalSettings {
 public struct FieldSettings {
     public SpatialSettings SpatialSettings { get; init; }
     public DirectionalSettings DirectionalSettings { get; init; }
-
-    internal OpenPGL.PGLFieldArguments MakeArguments() {
-        // We require the correct struct and dist type for preallocation done inside pglFieldArgumentsSetDefaults
-        OpenPGL.PGLFieldArguments arguments;
-        OpenPGL.pglFieldArgumentsSetDefaults(out arguments,
-            SpatialSettings.GetStructType(),
-            DirectionalSettings.GetDistType());
-
-        SpatialSettings?.SetArguments(ref arguments);
-        DirectionalSettings?.SetArguments(ref arguments);
-
-        return arguments;
-    }
 }
 
 public class Field : IDisposable {
@@ -269,7 +253,15 @@ public class Field : IDisposable {
 
     public Field(FieldSettings settings = new()) {
         device = new();
-        var arguments = settings.MakeArguments();
+        
+        OpenPGL.PGLFieldArguments arguments;
+        OpenPGL.pglFieldArgumentsSetDefaults(out arguments,
+            settings.SpatialSettings?.StructType ?? OpenPGL.PGL_SPATIAL_STRUCTURE_TYPE.PGL_SPATIAL_STRUCTURE_KDTREE,
+            settings.DirectionalSettings?.DistType ?? OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE.PGL_DIRECTIONAL_DISTRIBUTION_PARALLAX_AWARE_VMM);
+
+        settings.SpatialSettings?.SetArguments(ref arguments);
+        settings.DirectionalSettings?.SetArguments(ref arguments);
+
         Handle = OpenPGL.pglDeviceNewField(device.Ptr, arguments);
         Debug.Assert(Handle != nint.Zero);
     }
