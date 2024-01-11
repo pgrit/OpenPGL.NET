@@ -65,23 +65,23 @@ internal static partial class OpenPGL {
         // [MarshalAs(UnmanagedType.I1)] public bool parallaxCompensation;
     };
 
-    enum PGLDQTLeafEstimator {
+    public enum PGLDQTLeafEstimator {
         REJECTION_SAMPLING = 0,
         PER_LEAF
     };
 
-    enum PGLDQTSplitMetric {
+    public enum PGLDQTSplitMetric {
         MEAN = 0,
         SECOND_MOMENT
     };
 
     [StructLayout(LayoutKind.Sequential)]
-    struct PGLDQTFactoryArguments {
-        PGLDQTLeafEstimator leafEstimator;
-        PGLDQTSplitMetric splitMetric;
-        float splitThreshold;
-        float footprintFactor;
-        UInt32 maxLevels;
+    public struct PGLDQTFactoryArguments {
+        public PGLDQTLeafEstimator leafEstimator;
+        public PGLDQTSplitMetric splitMetric;
+        public float splitThreshold;
+        public float footprintFactor;
+        public UInt32 maxLevels;
     };
 
 
@@ -114,10 +114,12 @@ public struct BoundingBox {
 }
 
 public abstract class SpatialSettings {
+    internal abstract OpenPGL.PGL_SPATIAL_STRUCTURE_TYPE StructType { get; }
     internal abstract void SetArguments(ref OpenPGL.PGLFieldArguments target);
 }
 
 public abstract class DirectionalSettings {
+    internal abstract OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE DistType { get; }
     internal abstract void SetArguments(ref OpenPGL.PGLFieldArguments target);
 }
 
@@ -127,8 +129,10 @@ public class KdTreeSettings : SpatialSettings {
     public uint MaxSamples = 32000;
     public uint MaxDepth = 32;
 
+    internal override OpenPGL.PGL_SPATIAL_STRUCTURE_TYPE StructType { get => OpenPGL.PGL_SPATIAL_STRUCTURE_TYPE.PGL_SPATIAL_STRUCTURE_KDTREE; }
+
     internal override void SetArguments(ref OpenPGL.PGLFieldArguments target) {
-        target.spatialStructureType = OpenPGL.PGL_SPATIAL_STRUCTURE_TYPE.PGL_SPATIAL_STRUCTURE_KDTREE;
+        target.spatialStructureType = StructType;
         OpenPGL.PGLKDTreeArguments args = new() {
             knnLookup = KnnLookup,
             minSamples = new(MinSamples),
@@ -170,11 +174,16 @@ public class VMMDirectionalSettings : DirectionalSettings {
 
     public bool UseParallaxCompensation = true;
 
+    internal override OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE DistType { get {
+            if (UseParallaxCompensation)
+                return OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE.PGL_DIRECTIONAL_DISTRIBUTION_PARALLAX_AWARE_VMM;
+            else
+                return OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE.PGL_DIRECTIONAL_DISTRIBUTION_VMM;
+        }
+    }
+    
     internal override void SetArguments(ref OpenPGL.PGLFieldArguments target) {
-        if (UseParallaxCompensation)
-            target.directionalDistributionType = OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE.PGL_DIRECTIONAL_DISTRIBUTION_PARALLAX_AWARE_VMM;
-        else
-            target.directionalDistributionType = OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE.PGL_DIRECTIONAL_DISTRIBUTION_VMM;
+        target.directionalDistributionType = DistType;
 
         OpenPGL.PGLVMMFactoryArguments args = new() {
             initK = (nuint)int.Max(1, InitK),
@@ -200,21 +209,42 @@ public class VMMDirectionalSettings : DirectionalSettings {
     }
 }
 
+public enum DQTLeafEstimator {
+    RejectionSampling = 0,
+    PerLeaf
+};
+
+public enum DQTSplitMetric {
+    Mean = 0,
+    SecondMoment
+};
+
+public class DQTDirectionalSettings : DirectionalSettings {
+    public DQTLeafEstimator LeafEstimator = DQTLeafEstimator.RejectionSampling;
+    public DQTSplitMetric SplitMetric = DQTSplitMetric.Mean;
+    public float SplitThreshold = 0.01f;
+    public float FootprintFactor = 1;
+    public int MaxLevels = 12;
+    
+    internal override OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE DistType { get => OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE.PGL_DIRECTIONAL_DISTRIBUTION_QUADTREE; }
+
+    internal override void SetArguments(ref OpenPGL.PGLFieldArguments target) {
+        target.directionalDistributionType = DistType;
+
+        OpenPGL.PGLDQTFactoryArguments args = new() {
+            leafEstimator = (OpenPGL.PGLDQTLeafEstimator) LeafEstimator,
+            splitMetric = (OpenPGL.PGLDQTSplitMetric) SplitMetric,
+            splitThreshold = SplitThreshold,
+            footprintFactor = FootprintFactor,
+            maxLevels = (uint)int.Max(0, MaxLevels),
+        };
+        Marshal.StructureToPtr<OpenPGL.PGLDQTFactoryArguments>(args, target.directionalDistributionArguments, true);
+    }
+}
+
 public struct FieldSettings {
     public SpatialSettings SpatialSettings { get; init; }
     public DirectionalSettings DirectionalSettings { get; init; }
-
-    internal OpenPGL.PGLFieldArguments MakeArguments() {
-        OpenPGL.PGLFieldArguments arguments;
-        OpenPGL.pglFieldArgumentsSetDefaults(out arguments,
-            OpenPGL.PGL_SPATIAL_STRUCTURE_TYPE.PGL_SPATIAL_STRUCTURE_KDTREE,
-            OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE.PGL_DIRECTIONAL_DISTRIBUTION_PARALLAX_AWARE_VMM);
-
-        SpatialSettings?.SetArguments(ref arguments);
-        DirectionalSettings?.SetArguments(ref arguments);
-
-        return arguments;
-    }
 }
 
 public class Field : IDisposable {
@@ -223,7 +253,15 @@ public class Field : IDisposable {
 
     public Field(FieldSettings settings = new()) {
         device = new();
-        var arguments = settings.MakeArguments();
+        
+        OpenPGL.PGLFieldArguments arguments;
+        OpenPGL.pglFieldArgumentsSetDefaults(out arguments,
+            settings.SpatialSettings?.StructType ?? OpenPGL.PGL_SPATIAL_STRUCTURE_TYPE.PGL_SPATIAL_STRUCTURE_KDTREE,
+            settings.DirectionalSettings?.DistType ?? OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE.PGL_DIRECTIONAL_DISTRIBUTION_PARALLAX_AWARE_VMM);
+
+        settings.SpatialSettings?.SetArguments(ref arguments);
+        settings.DirectionalSettings?.SetArguments(ref arguments);
+
         Handle = OpenPGL.pglDeviceNewField(device.Ptr, arguments);
         Debug.Assert(Handle != nint.Zero);
     }
