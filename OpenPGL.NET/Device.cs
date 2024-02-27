@@ -8,7 +8,7 @@ internal static partial class OpenPGL {
     };
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern nint pglNewDevice(PGL_DEVICE_TYPE deviceType);
+    public static extern nint pglNewDevice(PGL_DEVICE_TYPE deviceType, nint numThreads);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     public static extern void pglReleaseDevice(nint device);
@@ -16,7 +16,7 @@ internal static partial class OpenPGL {
 
 internal class Device : IDisposable {
     public Device() {
-        Ptr = OpenPGL.pglNewDevice(OpenPGL.PGL_DEVICE_TYPE.PGL_DEVICE_TYPE_CPU_8);
+        Ptr = OpenPGL.pglNewDevice(OpenPGL.PGL_DEVICE_TYPE.PGL_DEVICE_TYPE_CPU_8, 0);
     }
 
     public nint Ptr;

@@ -27,20 +27,8 @@ internal static partial class OpenPGL {
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     public static extern nint pglSurfaceSamplingGetRegion(nint handle);
 
-    // [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    // public static extern float pglSurfaceSamplingDistributionLobePDF(nint surfaceSamplingDistribution,
-    //     nuint i, Vector3 direction);
-
-    // [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    // public static extern nuint pglSurfaceSamplingDistributionNumLobes(nint surfaceSamplingDistribution);
-
-    // [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    // public static extern float pglSurfaceSamplingDistributionGetLobeWeight(nint surfaceSamplingDistribution,
-    //     nuint i);
-
-    // [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    // public static extern void pglSurfaceSamplingDistributionSetLobeWeight(nint surfaceSamplingDistribution,
-    //     nuint i, float weight);
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern UInt32 pglSurfaceSamplingDistributionGetId(nint handle);
 }
 
 public class SurfaceSamplingDistribution : IDisposable {
@@ -77,27 +65,7 @@ public class SurfaceSamplingDistribution : IDisposable {
 
     public nint Region => OpenPGL.pglSurfaceSamplingGetRegion(handle);
 
+    public uint Id => OpenPGL.pglSurfaceSamplingDistributionGetId(handle);
+
     ~SurfaceSamplingDistribution() => Dispose();
-
-    // public int NumLobes => (int) OpenPGL.pglSurfaceSamplingDistributionNumLobes(handle);
-
-    // public float ComputeLobePdf(int lobeIdx, in Vector3 direction)
-    // => OpenPGL.pglSurfaceSamplingDistributionLobePDF(handle, new((uint)lobeIdx), direction);
-
-    // public float GetLobeWeight(int lobeIdx)
-    // => OpenPGL.pglSurfaceSamplingDistributionGetLobeWeight(handle, (nuint)lobeIdx);
-
-    // public float[] LobeWeights {
-    //     get {
-    //         float[] weights = new float[NumLobes];
-    //         for (int i = 0; i < weights.Length; ++i)
-    //             weights[i] = OpenPGL.pglSurfaceSamplingDistributionGetLobeWeight(handle, (nuint)i);
-    //         return weights;
-    //     }
-    //     set {
-    //         Debug.Assert(value.Length == NumLobes, "must set all lobe weights");
-    //         for (int i = 0; i < value.Length; ++i)
-    //             OpenPGL.pglSurfaceSamplingDistributionSetLobeWeight(handle, (nuint)i, value[i]);
-    //     }
-    // }
 }

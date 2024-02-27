@@ -7,9 +7,9 @@ internal static partial class OpenPGL {
         public Vector3 DirectionIn;
         public Vector3 DirectionOut;
         public Vector3 Normal;
-        [MarshalAs(UnmanagedType.I1)] public bool VolumeScatter;
+        public byte VolumeScatter;
         public float PDFDirectionIn;
-        [MarshalAs(UnmanagedType.I1)] public bool IsDelta;
+        public byte IsDelta;
         public Vector3 ScatteringWeight;
         public Vector3 TransmittanceWeight;
         public Vector3 DirectContribution;
@@ -29,54 +29,27 @@ public unsafe struct PathSegment {
         ptr = (OpenPGL.PathSegmentData*)data.ToPointer();
     }
 
-    public Vector3 Position {
-        set {
-            ptr->Position = value;
-        }
+    public ref Vector3 Position => ref ptr->Position;
+    public ref Vector3 Normal => ref ptr->Normal;
+    public ref Vector3 DirectionIn => ref ptr->DirectionIn;
+    public ref float PDFDirectionIn => ref ptr->PDFDirectionIn;
+    public ref Vector3 DirectionOut => ref ptr->DirectionOut;
+    public bool VolumeScatter {
+        get => ptr->VolumeScatter != 0;
+        set => ptr->VolumeScatter = value ? (byte)1 : (byte)0;
     }
-    public Vector3 Normal {
-        set {
-            ptr->Normal = value;
-        }
+    public ref Vector3 ScatteringWeight => ref ptr->ScatteringWeight;
+    public ref Vector3 DirectContribution => ref ptr->DirectContribution;
+    public ref Vector3 ScatteredContribution => ref ptr->ScatteredContribution;
+    public ref float MiWeight => ref ptr->MiWeight;
+    public ref float RussianRouletteProbability => ref ptr->RussianRouletteProbability;
+    public ref float Eta => ref ptr->Eta;
+    public bool IsDelta {
+        get => ptr->IsDelta != 0;
+        set => ptr->IsDelta = value ? (byte)1 : (byte)0;
     }
-    public Vector3 DirectionIn {
-        set {
-            Common.AssertNormalized(value);
-            ptr->DirectionIn = value;
-        }
-    }
-    public float PDFDirectionIn { set { ptr->PDFDirectionIn = value; } }
-    public Vector3 DirectionOut {
-        set {
-            Common.AssertNormalized(value);
-            ptr->DirectionOut = value;
-        }
-    }
-    public bool VolumeScatter { set { ptr->VolumeScatter = value; } }
-    public Vector3 ScatteringWeight {
-        set {
-            ptr->ScatteringWeight = value;
-        }
-    }
-    public Vector3 DirectContribution {
-        set {
-            ptr->DirectContribution = value;
-        }
-    }
-    public Vector3 ScatteredContribution {
-        get => ptr->ScatteredContribution;
-        set => ptr->ScatteredContribution = value;
-    }
-    public float MiWeight { set { ptr->MiWeight = value; } }
-    public float RussianRouletteProbability { set { ptr->RussianRouletteProbability = value; } }
-    public float Eta { set { ptr->Eta = value; } }
-    public bool IsDelta { set { ptr->IsDelta = value; } }
-    public float Roughness { set { ptr->Roughness = value; } }
-    public Vector3 TransmittanceWeight {
-        set {
-            ptr->TransmittanceWeight = value;
-        }
-    }
+    public ref float Roughness => ref ptr->Roughness;
+    public ref Vector3 TransmittanceWeight => ref ptr->TransmittanceWeight;
 
     public void SetDefaults() {
         Position = Vector3.Zero;

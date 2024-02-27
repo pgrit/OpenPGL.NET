@@ -1,4 +1,6 @@
-﻿namespace OpenPGL.NET;
+﻿using System.IO;
+
+namespace OpenPGL.NET;
 
 internal static partial class OpenPGL {
     public enum PGL_SPATIAL_STRUCTURE_TYPE {
@@ -12,6 +14,12 @@ internal static partial class OpenPGL {
     };
 
     [StructLayout(LayoutKind.Sequential)]
+    public struct PGLDebugArguments
+    {
+        [MarshalAs(UnmanagedType.I1)] public bool fitRegions;
+    };
+
+    [StructLayout(LayoutKind.Sequential)]
     public struct PGLFieldArguments {
         public PGL_SPATIAL_STRUCTURE_TYPE spatialStructureType;
         public nint spatialSturctureArguments;
@@ -19,6 +27,7 @@ internal static partial class OpenPGL {
         public nint directionalDistributionArguments;
         // for debugging
         [MarshalAs(UnmanagedType.I1)] public bool deterministic;
+        public PGLDebugArguments debugArguments;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -62,7 +71,6 @@ internal static partial class OpenPGL {
         public int minSamplesForSplitting;
         public int minSamplesForPartialRefitting;
         public int minSamplesForMerging;
-        // [MarshalAs(UnmanagedType.I1)] public bool parallaxCompensation;
     };
 
     public enum PGLDQTLeafEstimator {
@@ -87,7 +95,8 @@ internal static partial class OpenPGL {
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     public static extern void pglFieldArgumentsSetDefaults(out PGLFieldArguments arguments,
-        PGL_SPATIAL_STRUCTURE_TYPE spatialType, PGL_DIRECTIONAL_DISTRIBUTION_TYPE directionalType);
+        PGL_SPATIAL_STRUCTURE_TYPE spatialType, PGL_DIRECTIONAL_DISTRIBUTION_TYPE directionalType,
+        [MarshalAs(UnmanagedType.I1)] bool deterministic, nint maxSamplesPerLeaf);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     public static extern nint pglDeviceNewField(nint device, PGLFieldArguments arguments);
@@ -99,13 +108,21 @@ internal static partial class OpenPGL {
     public static extern uint pglFieldGetIteration(nint field);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-    public static extern uint pglFieldGetTotalSPP(nint field);
-
-    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     public static extern void pglFieldUpdate(nint field, nint sampleStorage, nuint numPerPixelSamples);
 
     [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
     public static extern void pglFieldSetSceneBounds(nint field, BoundingBox bounds);
+
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern nint pglDeviceNewFieldFromFile(nint device, [MarshalAs(UnmanagedType.LPUTF8Str)] string filename);
+
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    [return: MarshalAs(UnmanagedType.I1)]
+    public static extern bool pglFieldStoreToFile(nint field, [MarshalAs(UnmanagedType.LPUTF8Str)] string filename);
+
+    [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
+    [return: MarshalAs(UnmanagedType.I1)]
+    public static extern bool pglFieldValidate(nint field);
 }
 
 [StructLayout(LayoutKind.Sequential)]
@@ -249,18 +266,32 @@ public class Field : IDisposable {
     internal nint Handle;
     Device device;
 
-    public Field(FieldSettings settings = new()) {
+    public Field(FieldSettings settings = new(), bool deterministic = false, nint maxSamplesPerLeaf = 32000) {
         device = new();
 
         OpenPGL.pglFieldArgumentsSetDefaults(out var arguments,
             settings.SpatialSettings?.StructType ?? OpenPGL.PGL_SPATIAL_STRUCTURE_TYPE.PGL_SPATIAL_STRUCTURE_KDTREE,
-            settings.DirectionalSettings?.DistType ?? OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE.PGL_DIRECTIONAL_DISTRIBUTION_PARALLAX_AWARE_VMM);
+            settings.DirectionalSettings?.DistType ?? OpenPGL.PGL_DIRECTIONAL_DISTRIBUTION_TYPE.PGL_DIRECTIONAL_DISTRIBUTION_PARALLAX_AWARE_VMM,
+            deterministic, maxSamplesPerLeaf);
 
         settings.SpatialSettings?.SetArguments(ref arguments);
         settings.DirectionalSettings?.SetArguments(ref arguments);
 
         Handle = OpenPGL.pglDeviceNewField(device.Ptr, arguments);
         Debug.Assert(Handle != nint.Zero);
+    }
+
+    public Field(string filename) {
+        device = new();
+        if (!File.Exists(filename))
+            throw new FileNotFoundException("Guiding field file not found", filename);
+        Handle = OpenPGL.pglDeviceNewFieldFromFile(device.Ptr, filename);
+        Debug.Assert(Handle != nint.Zero);
+    }
+
+    public void WriteToFile(string filename) {
+        Debug.Assert(Handle != nint.Zero);
+        OpenPGL.pglFieldStoreToFile(Handle, filename);
     }
 
     public void Dispose() {
@@ -271,10 +302,11 @@ public class Field : IDisposable {
         }
     }
 
+    public bool IsValid => OpenPGL.pglFieldValidate(Handle);
+
     ~Field() => Dispose();
 
     public uint Iteration => OpenPGL.pglFieldGetIteration(Handle);
-    public uint TotalSPP => OpenPGL.pglFieldGetTotalSPP(Handle);
 
     public void Update(SampleStorage storage, uint numPerPixelSamples)
     => OpenPGL.pglFieldUpdate(Handle, storage.Handle, new(numPerPixelSamples));

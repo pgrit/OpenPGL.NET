@@ -50,7 +50,6 @@ namespace OpenPGL.NET.Tests {
             segment.Position = new(0, 0, 5);
             segment.DirectContribution = new(10, 10, 10);
 
-            System.Random rng = new(1337);
             uint num = storage.PrepareSamples(false, true, true);
 
             Assert.Equal(1u, num);
