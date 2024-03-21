@@ -5,7 +5,7 @@ param(
 # Download the prebuilt binaries for TBB, Embree, and OpenPGL from GitHub
 if (-not(Test-Path -Path "$prebuilt" -PathType Container))
 {
-    $renderLibVersion = "0.3.0"
+    $renderLibVersion = "0.3.2"
     if ([environment]::OSVersion::IsWindows())
     {
         Invoke-WebRequest -Uri "https://github.com/pgrit/RenderLibs/releases/download/v$renderLibVersion/RenderLibs-v$renderLibVersion.zip" -OutFile "prebuilt.zip"
@@ -40,7 +40,7 @@ cp $prebuilt/osx/lib/libopenpgl.0.6.0.dylib runtimes/linux-x64/native/libopenpgl
 
 mkdir runtimes/osx-arm64
 mkdir runtimes/osx-arm64/native
-cp $prebuilt/osx/lib/libtbb.12.dylib runtimes/osx-arm64/native/libtbb.12.dylib
+cp $prebuilt/osx-arm64/lib/libtbb.12.dylib runtimes/osx-arm64/native/libtbb.12.dylib
 cp $prebuilt/osx-arm64/lib/libopenpgl.0.6.0.dylib runtimes/osx-arm64/native/libopenpgl.dylib
 
 dotnet build

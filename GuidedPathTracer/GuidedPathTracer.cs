@@ -46,7 +46,7 @@ public class GuidedPathTracer : PathLenLoggingPathTracer {
     }
 
     protected override void OnPrepareRender() {
-        GuidingField = new(new() {
+        GuidingField = new(new FieldSettings() {
             SpatialSettings = SpatialSettings
         });
         GuidingField.SceneBounds = new() {
