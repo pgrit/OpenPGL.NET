@@ -5,7 +5,8 @@ using System.Numerics;
 using System.Threading;
 using OpenPGL.NET;
 using SeeSharp.Geometry;
-using SeeSharp.Image;
+using SeeSharp.Images;
+using SeeSharp.Shading.Materials;
 using SimpleImageIO;
 using TinyEmbree;
 
@@ -35,13 +36,13 @@ public class GuidedPathTracer : PathLenLoggingPathTracer {
     List<SingleIterationLayer> iterationRenderings = new();
     List<SingleIterationLayer> iterationCacheVisualizations = new();
 
-    public override void RegisterSample(Vector2 pixel, RgbColor weight, float misWeight, uint depth,
+    public override void RegisterSample(Pixel pixel, RgbColor weight, float misWeight, uint depth,
                                         bool isNextEvent) {
         base.RegisterSample(pixel, weight, misWeight, depth, isNextEvent);
 
         if (WriteIterationsAsLayers) {
             var render = iterationRenderings[scene.FrameBuffer.CurIteration - 1];
-            render.Splat(pixel.X, pixel.Y, weight * misWeight);
+            render.Splat(pixel, weight * misWeight);
         }
     }
 
@@ -81,7 +82,7 @@ public class GuidedPathTracer : PathLenLoggingPathTracer {
         GuidingEnabled = true;
     }
 
-    protected override void OnStartPath(in PathState state) {
+    protected override void OnStartPath(ref PathState state) {
         // Reserve memory for the path segments in our thread-local storage
         if (!pathStorage.IsValueCreated)
             pathStorage.Value = new();
@@ -90,7 +91,7 @@ public class GuidedPathTracer : PathLenLoggingPathTracer {
         pathStorage.Value.Clear();
     }
 
-    protected override void OnHit(in Ray ray, in Hit hit, in PathState state) {
+    protected override void OnHit(in Ray ray, in Hit hit, ref PathState state) {
         // Prepare the next path segment: set all the info we already have
         var segment = pathStorage.Value.NextSegment();
 
@@ -112,7 +113,7 @@ public class GuidedPathTracer : PathLenLoggingPathTracer {
 
                 var color = RegionVisualizer.HsvToRgb(hue, saturation, 1.0f);
                 iterationCacheVisualizations[scene.FrameBuffer.CurIteration - 1]
-                    .Splat(state.Pixel.X, state.Pixel.Y, color);
+                    .Splat(state.Pixel, color);
             }
         }
     }
@@ -136,13 +137,13 @@ public class GuidedPathTracer : PathLenLoggingPathTracer {
         return distribution;
     }
 
-    protected override (Ray, float, RgbColor) SampleDirection(in Ray ray, in SurfacePoint hit, in PathState state) {
-        Vector3 outDir = Vector3.Normalize(-ray.Direction);
-        float selectGuideProb = GuidingEnabled ? ComputeGuidingSelectProbability(outDir, hit, state) : 0;
+    protected override (Ray, float, RgbColor, RgbColor) SampleDirection(in SurfaceShader shader, in PathState state) {
+        Vector3 outDir = shader.Context.OutDirWorld;
+        float selectGuideProb = GuidingEnabled ? ComputeGuidingSelectProbability(outDir, shader.Point, state) : 0;
 
         SurfaceSamplingDistribution distribution = null;
         if (selectGuideProb > 0) {
-            distribution = GetDistribution(outDir, hit, state);
+            distribution = GetDistribution(outDir, shader.Point, state);
             Debug.Assert(distribution != null);
         }
 
@@ -154,19 +155,19 @@ public class GuidedPathTracer : PathLenLoggingPathTracer {
             guidePdf = distribution.PDF(sampledDir);
             guidePdf *= selectGuideProb;
 
-            bsdfPdf = hit.Material.Pdf(hit, outDir, sampledDir, false).Item1;
+            bsdfPdf = shader.Pdf(sampledDir).Pdf;
             bsdfPdf *= (1 - selectGuideProb);
 
-            contrib = hit.Material.EvaluateWithCosine(hit, outDir, sampledDir, false);
+            contrib = shader.EvaluateWithCosine(sampledDir);
             contrib /= guidePdf + bsdfPdf;
 
-            nextRay = Raytracer.SpawnRay(hit, sampledDir);
+            nextRay = Raytracer.SpawnRay(shader.Point, sampledDir);
         } else { // Sample the BSDF (default)
-            (nextRay, bsdfPdf, contrib) = base.SampleDirection(ray, hit, state);
+            (nextRay, bsdfPdf, contrib, _) = base.SampleDirection(shader, state);
             bsdfPdf *= (1 - selectGuideProb);
 
             if (bsdfPdf == 0) { // prevent NaNs / Infs
-                return (new(), 0, RgbColor.Black);
+                return (new(), 0, RgbColor.Black, RgbColor.Black);
             }
 
             if (GuidingEnabled && selectGuideProb > 0) {
@@ -182,7 +183,7 @@ public class GuidedPathTracer : PathLenLoggingPathTracer {
 
         float pdf = guidePdf + bsdfPdf;
         if (pdf == 0) { // prevent NaNs / Infs
-            return (new(), 0, RgbColor.Black);
+            return (new(), 0, RgbColor.Black, RgbColor.Black);
         }
 
         // Update the incident direction and PDF in the current path segment
@@ -193,10 +194,10 @@ public class GuidedPathTracer : PathLenLoggingPathTracer {
         segment.ScatteringWeight = contrib;
 
         // Material data
-        segment.Roughness = hit.Material.GetRoughness(hit);
-        if (Vector3.Dot(inDir, -ray.Direction) < 0) {
-            float ior = hit.Material.GetIndexOfRefractionRatio(hit);
-            if (Vector3.Dot(inDir, hit.ShadingNormal) < 0) {
+        segment.Roughness = shader.GetRoughness();
+        if (Vector3.Dot(inDir, outDir) < 0) {
+            float ior = shader.GetIndexOfRefractionRatio();
+            if (Vector3.Dot(inDir, shader.Context.Normal) < 0) {
                 ior = 1 / ior;
             }
             segment.Eta = ior;
@@ -204,26 +205,27 @@ public class GuidedPathTracer : PathLenLoggingPathTracer {
             segment.Eta = 1;
         }
 
-        return (nextRay, pdf, contrib);
+        return (nextRay, pdf, contrib, contrib);
     }
 
-    protected override float DirectionPdf(in SurfacePoint hit, Vector3 outDir, Vector3 sampledDir,
-                                          in PathState state) {
-        float selectGuideProb = GuidingEnabled ? ComputeGuidingSelectProbability(outDir, hit, state) : 0;
+    protected override float DirectionPdf(in SurfaceShader shader, Vector3 sampledDir,
+                                         PathState state) {
+        Vector3 outDir = shader.Context.OutDirWorld;
+        float selectGuideProb = GuidingEnabled ? ComputeGuidingSelectProbability(outDir, shader.Point, state) : 0;
 
         if (!GuidingEnabled || selectGuideProb <= 0)
-            return base.DirectionPdf(hit, outDir, sampledDir, state);
+            return base.DirectionPdf(shader, sampledDir, state);
 
-        SurfaceSamplingDistribution distribution = GetDistribution(outDir, hit, state);
+        SurfaceSamplingDistribution distribution = GetDistribution(outDir, shader.Point, state);
 
-        float bsdfPdf = base.DirectionPdf(hit, outDir, sampledDir, state) * (1 - selectGuideProb);
+        float bsdfPdf = base.DirectionPdf(shader, sampledDir, state) * (1 - selectGuideProb);
         float guidePdf = distribution.PDF(Vector3.Normalize(sampledDir)) * selectGuideProb;
         distribution?.Clear();
         return bsdfPdf + guidePdf;
     }
 
-    protected override void OnNextEventResult(in Ray ray, in SurfacePoint point, in PathState state,
-                                              float misWeight, RgbColor estimate) {
+    protected override void OnNextEventResult(in SurfaceShader shader, in PathState state,
+                                             float misWeight, RgbColor estimate) {
         var segment = pathStorage.Value.LastSegment;
 
         var contrib = misWeight * estimate;
@@ -246,8 +248,8 @@ public class GuidedPathTracer : PathLenLoggingPathTracer {
         segment.DirectContribution = emission;
     }
 
-    protected override void OnFinishedPath(in RadianceEstimate estimate, in PathState state) {
-        base.OnFinishedPath(estimate, state);
+    protected override void OnFinishedPath(RgbColor estimate, ref PathState state) {
+        base.OnFinishedPath(estimate, ref state);
 
         if (!pathStorage.IsValueCreated) {
             return; // The path never hit anything.

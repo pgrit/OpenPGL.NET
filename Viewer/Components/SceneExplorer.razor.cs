@@ -75,7 +75,7 @@ namespace Viewer.Components {
                 Scene.FrameBuffer = new(640, 480, "");
                 Scene.Prepare();
                 vis.Render(Scene);
-                previewImageData = Scene.FrameBuffer.Image.AsBase64Png();
+                previewImageData = Scene.FrameBuffer.Image.AsBase64();
 
                 Scene.Camera.WorldToCamera = old;
             }
