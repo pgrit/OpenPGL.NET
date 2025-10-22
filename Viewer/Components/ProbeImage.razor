@@ -80,9 +80,10 @@
         ProbePixelX = (int)e.OffsetX;
         ProbePixelY = (int)e.OffsetY;
 
+        var rng = new SeeSharp.Sampling.RNG(0);
         probeRay = Scene.Camera.GenerateRay(
             new Vector2(ProbePixelX, ProbePixelY),
-            new SeeSharp.Sampling.RNG(0)
+            ref rng
         ).Ray;
 
         await FindPoint();

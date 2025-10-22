@@ -27,7 +27,7 @@
         <div style="height: 480px;">
             @if (renderResult != null) {
                 <div style="height: 580px; float: left;">
-                    <ProbeImage Scene="@(Scene)" PreviewImageBase64="@(renderResult.AsBase64Png())" OnClick="@Query"
+                    <ProbeImage Scene="@(Scene)" PreviewImageBase64="@(renderResult.AsBase64())" OnClick="@Query"
                         Width="640" Height="480"
                     />
                 </div>
@@ -35,7 +35,7 @@
 
             @if (regionVisImage != null) {
                 <div style="height: 580px; float: left;">
-                    <ProbeImage Scene="@(Scene)" PreviewImageBase64="@(regionVisImage.AsBase64Png())" OnClick="@Query"
+                    <ProbeImage Scene="@(Scene)" PreviewImageBase64="@(regionVisImage.AsBase64())" OnClick="@Query"
                         Width="640" Height="480"
                     />
                 </div>
@@ -46,10 +46,10 @@
             <div style="height: @(resolution)px;">
                 <div @onclick="UpdateProbePixel" style="float:left; width: @(resolution)px; height: @(resolution)px;">
                     <div class="probe-marker" style="left: @(ProbePixelX)px; top: @(ProbePixelY)px;"></div>
-                    <img class="probe-image" src="data:image/png;base64,@(distributionImage.AsBase64Png())"/>
+                    <img class="probe-image" src="data:image/png;base64,@(distributionImage.AsBase64())"/>
                 </div>
 
-                <img style="float: left;" src="data:image/png;base64,@(probeImage.AsBase64Png())"/>
+                <img style="float: left;" src="data:image/png;base64,@(probeImage.AsBase64())"/>
             </div>
 
             <SceneExplorer Scene="@(Scene)"

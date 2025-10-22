@@ -18,7 +18,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/GuidedPathTracer/bin/Debug/net8.0/GuidedPathTracer.dll",
+            "program": "${workspaceFolder}/GuidedPathTracer/bin/Debug/net9.0/GuidedPathTracer.dll",
             "args": [],
             "cwd": "${workspaceFolder}/GuidedPathTracer",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
@@ -37,7 +37,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/Benchmark/bin/Debug/net8.0/Benchmark.dll",
+            "program": "${workspaceFolder}/Benchmark/bin/Debug/net9.0/Benchmark.dll",
             "args": [],
             "cwd": "${workspaceFolder}/Benchmark",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
@@ -56,7 +56,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/Viewer/bin/Debug/net8.0/Viewer.dll",
+            "program": "${workspaceFolder}/Viewer/bin/Debug/net9.0/Viewer.dll",
             "args": [],
             "cwd": "${workspaceFolder}/Viewer",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console

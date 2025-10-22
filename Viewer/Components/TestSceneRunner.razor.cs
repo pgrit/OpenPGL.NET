@@ -8,7 +8,7 @@ using OpenPGL.NET;
 using SeeSharp.Cameras;
 using SeeSharp.Experiments;
 using SeeSharp.Geometry;
-using SeeSharp.Image;
+using SeeSharp.Images;
 using SeeSharp.Integrators.Bidir;
 using SeeSharp.Sampling;
 using SeeSharp.Shading;
