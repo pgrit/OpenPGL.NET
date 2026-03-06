@@ -1,10 +1,12 @@
 namespace OpenPGL.NET;
 
-public struct SampleData {
+public struct SampleData
+{
     [Flags]
-    public enum SampleFlags : UInt32 {
-        ESplatted = 1 << 0, // point does not represent any real scene intersection point
-        EInsideVolume = 1 << 1 // point does not represent any real scene intersection point
+    public enum SampleFlags : UInt32
+    {
+        EInsideVolume = 1 << 0, // point does not represent any real scene intersection point
+        EDirectLight = 1 << 1, // if the samples represents direct light from a light source
     };
 
     public Vector3 Position;
